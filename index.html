@@ -15,43 +15,46 @@
 
     <!-- Viršutinė dalis / Antraštė -->
     <header class="max-w-4xl w-full text-center my-4">
-        <h1 class="text-3xl md:text-4xl font-bold text-amber-900 mb-2">🍁 Rudeninis matematikos lapas 🍁</h1>
-        <p class="text-slate-600 text-sm md:text-base">Sveikųjų skaičių sudėtis ir atimtis (6 klasė). Teisingai: <span class="text-green-600 font-bold">+10 tšk.</span> | Neteisingai: <span class="text-red-600 font-bold">-5 tšk.</span></p>
+        <h1 class="text-3xl md:text-4xl font-bold text-amber-900 mb-2">🍁 Rudeninis matematikos lapas (40 iššūkių) 🍁</h1>
+        <p class="text-slate-600 text-sm md:text-base">Sveikieji ir dešimtainiai skaičiai (6 klasė). Teisingai: <span class="text-green-600 font-bold">+10 tšk.</span> | Neteisingai: <span class="text-red-600 font-bold">-5 tšk.</span></p>
     </header>
 
     <!-- Mokinio vardo registracija -->
     <div id="name-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl text-center">
             <h2 class="text-2xl font-bold text-amber-900 mb-2">Pasiruošk atostogoms!</h2>
-            <p class="text-slate-600 mb-4 text-sm">Įveskite savo vardą ir pavardę, kad pradėtumėte žaidimą ir išsaugotumėte rezultatus:</p>
+            <p class="text-slate-600 mb-4 text-sm">Įveskite savo vardą ir pavardę, kad pradėtumėte žaidimą:</p>
             <input type="text" id="student-name-input" placeholder="Vardas Pavardė" class="w-full border-2 border-amber-300 rounded-xl px-4 py-3 text-lg mb-4 focus:outline-none focus:border-amber-600 text-center">
             <button onclick="startGame()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition shadow-lg">Pradėti žaidimą 🚀</button>
         </div>
     </div>
 
     <!-- Pagrindinis turinys -->
-    <main class="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <main class="max-w-5xl w-full grid grid-cols-1 md:grid-cols-3 gap-6">
         
         <!-- Korių laukas (Lapas) -->
-        <div class="lg:col-span-2 bg-white rounded-3xl p-6 shadow-xl border border-amber-200 flex flex-col items-center justify-center relative">
+        <div class="md:col-span-2 bg-white rounded-3xl p-6 shadow-xl border border-amber-200 flex flex-col items-center justify-center relative">
             <div class="flex justify-between w-full mb-4 px-2">
                 <span class="font-semibold text-amber-900">Mokinys: <span id="display-name" class="text-amber-600">-</span></span>
                 <span class="font-bold text-lg bg-amber-100 text-amber-800 px-3 py-1 rounded-full">Taškai: <span id="score-val">0</span></span>
             </div>
             
-            <!-- Grid su 30 koriukų -->
-            <div id="grid-container" class="grid grid-cols-5 gap-2 w-full max-w-lg aspect-square">
+            <!-- Grid su 40 koriukų -->
+            <div id="grid-container" class="grid grid-cols-5 sm:grid-cols-8 gap-2 w-full max-w-xl">
                 <!-- Sukuriama per JS -->
             </div>
-            <p class="text-xs text-slate-400 mt-4 text-center">Spustelėkite bet kurį aktyvų koriuką, kad išspręstumėte uždavinį!</p>
+            <p class="text-xs text-slate-400 mt-4 text-center">31–40 koriukai – patys sunkiausi su dešimtainiais skaičiais!🔥</p>
         </div>
 
-        <!-- Šoninis skydelis: Uždavinių sprendimas + Rezultatų lenta -->
+        <!-- Šoninis skydelis: Uždavinių sprendimas -->
         <div class="flex flex-col gap-6">
             
             <!-- Sprendimo kortelė -->
             <div id="task-card" class="bg-white rounded-3xl p-6 shadow-xl border border-amber-200 hidden">
-                <h3 class="text-lg font-bold text-amber-900 mb-3 border-b pb-2">Koriukas Nr. <span id="active-task-id">1</span></h3>
+                <div class="flex justify-between items-center mb-3 border-b pb-2">
+                    <h3 class="text-lg font-bold text-amber-900">Koriukas Nr. <span id="active-task-id">1</span></h3>
+                    <span id="task-badge" class="text-xs font-bold px-2 py-1 rounded-md bg-amber-100 text-amber-800">Paprastas</span>
+                </div>
                 <div class="text-2xl font-bold text-center text-slate-700 my-6 bg-amber-50 py-4 rounded-2xl border border-amber-200" id="task-expression">
                     -5 + (-3)
                 </div>
@@ -61,9 +64,9 @@
                     <!-- Mygtukų generavimas -->
                 </div>
 
-                <!-- Įvesties laukelis (16-30 uždaviniai) -->
+                <!-- Įvesties laukelis (16-40 uždaviniai) -->
                 <div id="input-container" class="hidden flex flex-col gap-3">
-                    <input type="number" id="manual-answer-input" placeholder="Įveskite atsakymą" class="border-2 border-amber-300 rounded-xl px-4 py-2 text-center text-xl focus:outline-none focus:border-amber-600">
+                    <input type="text" id="manual-answer-input" placeholder="Pvm. -2.2 arba -2,2" class="border-2 border-amber-300 rounded-xl px-4 py-2 text-center text-xl focus:outline-none focus:border-amber-600">
                     <button onclick="submitInputValue()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-xl transition">Tikrinti atsakymą</button>
                 </div>
 
@@ -73,19 +76,8 @@
             <!-- Pradinė kortelė (kai nepasirinktas koriukas) -->
             <div id="welcome-card" class="bg-amber-100/60 rounded-3xl p-6 shadow-md border border-amber-200 text-center flex flex-col justify-center items-center h-full">
                 <span class="text-4xl mb-2">🍁</span>
-                <h4 class="font-bold text-amber-900 text-lg">Sveikųjų skaičių iššūkis</h4>
-                <p class="text-sm text-slate-600 mt-1">Spauskite kairėje esančius lapo koriukus, spręskite sudėties ir atimties veiksmus bei rinkite taškus!</p>
-            </div>
-
-            <!-- Geriausių rezultatai (Leaderboard) -->
-            <div class="bg-white rounded-3xl p-6 shadow-xl border border-amber-200">
-                <h3 class="text-lg font-bold text-amber-900 mb-3 border-b pb-2 flex items-center justify-between">
-                    <span>🏆 Lyderių lenta</span>
-                    <span class="text-xs font-normal text-slate-400">Top 10</span>
-                </h3>
-                <div id="leaderboard-list" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
-                    <p class="text-sm text-slate-400 text-center py-2">Kraunami rezultatai...</p>
-                </div>
+                <h4 class="font-bold text-amber-900 text-lg">Sveikųjų ir dešimtainių iššūkis</h4>
+                <p class="text-sm text-slate-600 mt-1">Spauskite lapo koriukus kairėje. Išspręskite visus 40 uždavinių ir įrodykite, kad esate matematikos ekspertas!</p>
             </div>
 
         </div>
@@ -93,10 +85,10 @@
 
     <!-- Pabaigos modalas -->
     <div id="win-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center transform scale-95 transition-transform" id="win-modal-content">
-            <span class="text-5xl mb-2 inline-block">🎉</span>
-            <h2 class="text-3xl font-bold text-amber-900 mb-2">Šaunuolis!</h2>
-            <p class="text-slate-600 mb-4">Sėkmingai išsprendei visus rudeninio lapo koriukus ir pasiruošei atostogoms!</p>
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center transform scale-95 transition-transform">
+            <span class="text-5xl mb-2 inline-block">🏆</span>
+            <h2 class="text-3xl font-bold text-amber-900 mb-2">Super! <span id="final-name"></span></h2>
+            <p class="text-slate-600 mb-4">Išsprendei visus 40 koriukų, įveikei sunkiuosius dešimtainius skaičius ir pasiruošei atostogoms!</p>
             <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 mb-6">
                 <span class="text-sm text-slate-500 block">Galutinis rezultatas:</span>
                 <span id="final-score" class="text-4xl font-extrabold text-amber-700">0</span> <span class="text-amber-800 font-bold">tšk.</span>
@@ -105,31 +97,16 @@
         </div>
     </div>
 
-    <!-- Firebase ir Žaidimo skriptai -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
-
-        // Jūsų Firebase konfigūracija
-        const firebaseConfig = {
-            apiKey: "AIzaSyBCtdTmKrgp_NpWXCPeiQL94xdxxgjww84",
-            authDomain: "matematika-6.firebaseapp.com",
-            projectId: "matematika-6",
-            storageBucket: "matematika-6.firebasestorage.app",
-            messagingSenderId: "735242457969",
-            appId: "1:735242457969:web:4f16317296e5f3444c9cd0"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
+    <!-- Žaidimo logika -->
+    <script>
         let playerName = "";
         let score = 0;
         let activeTaskIndex = null;
         let solvedCount = 0;
 
-        // 30 uždavinių masyvas (1-15 su pasirinkimais, 16-30 įrašomi)
+        // 40 uždavinių masyvas
         const tasks = [
+            // 1-15: Pasirinkimai (Sveikieji skaičiai)
             { expr: "-5 + (-8)", answer: -13, type: "choice", options: [-13, 13, -3, 3] },
             { expr: "12 + (-7)", answer: 5, type: "choice", options: [-5, 5, 19, -19] },
             { expr: "-15 - (-6)", answer: -9, type: "choice", options: [-9, 9, -21, 21] },
@@ -146,6 +123,7 @@
             { expr: "-3 - (-17)", answer: 14, type: "choice", options: [-14, 14, 20, -20] },
             { expr: "-8 + (-4)", answer: -12, type: "choice", options: [12, -12, 4, -4] },
             
+            // 16-30: Įvedami (Sveikieji skaičiai)
             { expr: "-10 + 22", answer: 12, type: "input" },
             { expr: "15 - (-5)", answer: 20, type: "input" },
             { expr: "-16 - 4", answer: -20, type: "input" },
@@ -160,12 +138,24 @@
             { expr: "-25 - 10", answer: -35, type: "input" },
             { expr: "18 + (-22)", answer: -4, type: "input" },
             { expr: "-12 - (-19)", answer: 7, type: "input" },
-            { expr: "-9 + (-11)", answer: -20, type: "input" }
+            { expr: "-9 + (-11)", answer: -20, type: "input" },
+
+            // 31-40: Įvedami (Dešimtainiai skaičiai – Kiečiausiems)
+            { expr: "-4,5 + 2,3", answer: -2.2, type: "input", hard: true },
+            { expr: "-1,2 - (-3,8)", answer: 2.6, type: "input", hard: true },
+            { expr: "5,4 + (-8,1)", answer: -2.7, type: "input", hard: true },
+            { expr: "-0,75 + (-0,25)", answer: -1, type: "input", hard: true },
+            { expr: "-6,3 - 2,7", answer: -9, type: "input", hard: true },
+            { expr: "3,5 - 7,2", answer: -3.7, type: "input", hard: true },
+            { expr: "-2,8 + (-1,4)", answer: -4.2, type: "input", hard: true },
+            { expr: "-0,6 - (-2,4)", answer: 1.8, type: "input", hard: true },
+            { expr: "1,5 + (-4,9)", answer: -3.4, type: "input", hard: true },
+            { expr: "-10 - (-3,5)", answer: -6.5, type: "input", hard: true }
         ];
 
-        let taskStates = Array(30).fill("unsolved"); // "unsolved", "correct", "incorrect"
+        let taskStates = Array(40).fill("unsolved");
 
-        window.startGame = function() {
+        function startGame() {
             const input = document.getElementById("student-name-input").value.trim();
             if (!input) {
                 alert("Prašome įvesti savo vardą!");
@@ -175,15 +165,22 @@
             document.getElementById("display-name").innerText = playerName;
             document.getElementById("name-modal").style.display = "none";
             initGrid();
-            fetchLeaderboard();
-        };
+        }
 
         function initGrid() {
             const container = document.getElementById("grid-container");
             container.innerHTML = "";
             tasks.forEach((t, index) => {
                 const cell = document.createElement("div");
-                cell.className = "flex items-center justify-center rounded-2xl border-2 border-amber-300 font-bold text-sm cursor-pointer transition bg-amber-50/50 hover:bg-amber-100 select-none shadow-sm";
+                let baseStyle = "flex items-center justify-center rounded-2xl border-2 font-bold text-sm cursor-pointer transition select-none shadow-sm h-11 ";
+                
+                if(t.hard) {
+                    baseStyle += "border-purple-300 bg-purple-50/70 hover:bg-purple-100 text-purple-900";
+                } else {
+                    baseStyle += "border-amber-300 bg-amber-50/50 hover:bg-amber-100 text-slate-700";
+                }
+
+                cell.className = baseStyle;
                 cell.id = `cell-${index}`;
                 cell.innerText = index + 1;
                 cell.onclick = () => selectTask(index);
@@ -191,13 +188,22 @@
             });
         }
 
-        window.selectTask = function(index) {
+        function selectTask(index) {
             activeTaskIndex = index;
             document.getElementById("welcome-card").style.display = "none";
             document.getElementById("task-card").style.display = "block";
             document.getElementById("active-task-id").innerText = index + 1;
             document.getElementById("task-expression").innerText = tasks[index].expr;
             document.getElementById("task-feedback").innerText = "";
+
+            const badge = document.getElementById("task-badge");
+            if (tasks[index].hard) {
+                badge.innerText = "🔥 Dešimtainiai";
+                badge.className = "text-xs font-bold px-2 py-1 rounded-md bg-purple-100 text-purple-800 border border-purple-200";
+            } else {
+                badge.innerText = "Paprastas";
+                badge.className = "text-xs font-bold px-2 py-1 rounded-md bg-amber-100 text-amber-800 border border-amber-200";
+            }
 
             const optContainer = document.getElementById("options-container");
             const inpContainer = document.getElementById("input-container");
@@ -206,7 +212,6 @@
                 optContainer.style.display = "grid";
                 inpContainer.style.display = "none";
                 optContainer.innerHTML = "";
-                // Sumaišome variantus
                 let shuffledOpts = [...tasks[index].options].sort(() => Math.random() - 0.5);
                 shuffledOpts.forEach(opt => {
                     const btn = document.createElement("button");
@@ -222,21 +227,35 @@
                 field.value = "";
                 field.focus();
             }
-        };
+        }
 
-        window.submitInputValue = function() {
-            const val = document.getElementById("manual-answer-input").value;
-            if (val === "") return;
-            checkAnswer(Number(val));
-        };
+        function submitInputValue() {
+            const rawVal = document.getElementById("manual-answer-input").value.trim();
+            if (rawVal === "") return;
+            // Pakeičiame kablelį į tašką, kad veiktų dešimtainiai skaičiai
+            const normalizedVal = Number(rawVal.replace(',', '.'));
+            if (isNaN(normalizedVal)) {
+                document.getElementById("task-feedback").innerText = "Įveskite skaičių!";
+                document.getElementById("task-feedback").className = "mt-4 text-center font-bold text-sm text-amber-600";
+                return;
+            }
+            checkAnswer(normalizedVal);
+        }
 
-        // Palaikymas su Enter mygtuku
         document.addEventListener("DOMContentLoaded", () => {
             const manualInput = document.getElementById("manual-answer-input");
             if(manualInput) {
                 manualInput.addEventListener("keypress", function(e) {
                     if (e.key === 'Enter') {
                         submitInputValue();
+                    }
+                });
+            }
+            const nameInput = document.getElementById("student-name-input");
+            if(nameInput) {
+                nameInput.addEventListener("keypress", function(e) {
+                    if (e.key === 'Enter') {
+                        startGame();
                     }
                 });
             }
@@ -249,10 +268,13 @@
 
             const isAlreadyCorrect = taskStates[activeTaskIndex] === "correct";
 
-            if (selectedAns === currentTask.answer) {
+            // Palyginame su paklaida dėl JavaScript plaukiojančio kablelio tikslumo (pvz., 0.1 + 0.2)
+            const isCorrect = Math.abs(selectedAns - currentTask.answer) < 0.001;
+
+            if (isCorrect) {
                 feedback.innerText = "Teisingai! (+10 tšk.)";
                 feedback.className = "mt-4 text-center font-bold text-sm text-green-600";
-                cell.className = "flex items-center justify-center rounded-2xl border-2 border-green-500 font-bold text-sm cursor-pointer transition bg-green-500 text-white select-none shadow-md";
+                cell.className = "flex items-center justify-center rounded-2xl border-2 border-green-500 font-bold text-sm cursor-pointer transition bg-green-500 text-white select-none shadow-md h-11";
                 cell.innerText = "✓";
 
                 if (!isAlreadyCorrect) {
@@ -263,14 +285,13 @@
             } else {
                 feedback.innerText = "Neteisingai! (-5 tšk.)";
                 feedback.className = "mt-4 text-center font-bold text-sm text-red-600";
-                cell.className = "flex items-center justify-center rounded-2xl border-2 border-red-500 font-bold text-sm cursor-pointer transition bg-red-500 text-white select-none shadow-md";
+                cell.className = "flex items-center justify-center rounded-2xl border-2 border-red-500 font-bold text-sm cursor-pointer transition bg-red-500 text-white select-none shadow-md h-11";
                 cell.innerText = "✗";
 
                 if (!isAlreadyCorrect && taskStates[activeTaskIndex] !== "incorrect") {
                     score -= 5;
                     taskStates[activeTaskIndex] = "incorrect";
                 } else if (isAlreadyCorrect) {
-                    // Jei jau buvo teisingas, bet vėl atsakė neteisingai
                     score -= 10;
                     taskStates[activeTaskIndex] = "incorrect";
                     solvedCount--;
@@ -279,43 +300,16 @@
 
             document.getElementById("score-val").innerText = score;
 
-            // Patikriname ar baigė visus
-            if (solvedCount === 30) {
+            if (solvedCount === 40) {
                 setTimeout(triggerWin, 800);
             }
         }
 
-        async function triggerWin() {
+        function triggerWin() {
+            document.getElementById("final-name").innerText = playerName;
             document.getElementById("final-score").innerText = score;
             document.getElementById("win-modal").style.display = "flex";
-
-            // Saugome į Firestore DB
-            try {
-                await addDoc(collection(db, "leaderboard"), {
-                    playerName: playerName,
-                    score: score,
-                    timestamp: serverTimestamp()
-                });
-                fetchLeaderboard();
-            } catch (e) {
-                console.error("Klaida saugant į DB: ", e);
-            }
         }
-
-        async function fetchLeaderboard() {
-            const listContainer = document.getElementById("leaderboard-list");
-            listContainer.innerHTML = `<p class="text-sm text-slate-400 text-center py-2">Kraunama...</p>`;
-            try {
-                const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(10));
-                const querySnapshot = await getDocs(q);
-                listContainer.innerHTML = "";
-                
-                if(querySnapshot.empty) {
-                    listContainer.innerHTML = `<p class="text-sm text-slate-400 text-center py-2">Dar nėra rezultatų.</p>`;
-                    return;
-                }
-
-                let rank = 1;
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const item = document.createElement
+    </script>
+</body>
+</html>
