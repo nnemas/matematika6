@@ -3,312 +3,514 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rudeninis matematikos lapas – 6 klasė</title>
-    <!-- Tailwind CSS -->
+    <title>Sveikųjų skaičių sudėtis ir atimtis (6 kl.)</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap');
-        body { font-family: 'Outfit', sans-serif; }
-    </style>
+    <!-- Supabase JS SDK CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        autumn: {
+                            50: '#fffbe6',
+                            100: '#fef3c7',
+                            200: '#fde68a',
+                            500: '#d97706',
+                            600: '#b45309',
+                            700: '#92400e',
+                            800: '#78350f',
+                            900: '#451a03',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="bg-amber-50 text-slate-800 min-h-screen flex flex-col items-center p-4">
+<body class="bg-autumn-50 text-gray-800 font-sans min-h-screen flex flex-col justify-between">
 
-    <!-- Viršutinė dalis / Antraštė -->
-    <header class="max-w-4xl w-full text-center my-4">
-        <h1 class="text-3xl md:text-4xl font-bold text-amber-900 mb-2">🍁 Rudeninis matematikos lapas (40 iššūkių) 🍁</h1>
-        <p class="text-slate-600 text-sm md:text-base">Sveikieji ir dešimtainiai skaičiai (6 klasė). Teisingai: <span class="text-green-600 font-bold">+10 tšk.</span> | Neteisingai: <span class="text-red-600 font-bold">-5 tšk.</span></p>
-    </header>
+    <!-- SUPABASE KONFIGŪRACIJA -->
+    <script>
+        const SUPABASE_URL = ''; 
+        const SUPABASE_ANON_KEY = '';
+        let supabaseClient = null;
+        if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+            try {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } catch(e) { console.error("Supabase klaida:", e); }
+        }
+    </script>
 
-    <!-- Mokinio vardo registracija -->
-    <div id="name-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl text-center">
-            <h2 class="text-2xl font-bold text-amber-900 mb-2">Pasiruošk atostogoms!</h2>
-            <p class="text-slate-600 mb-4 text-sm">Įveskite savo vardą ir pavardę, kad pradėtumėte žaidimą:</p>
-            <input type="text" id="student-name-input" placeholder="Vardas Pavardė" class="w-full border-2 border-amber-300 rounded-xl px-4 py-3 text-lg mb-4 focus:outline-none focus:border-amber-600 text-center">
-            <button onclick="startGame()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition shadow-lg">Pradėti žaidimą 🚀</button>
+    <!-- Modalinis Prisijungimo Langas -->
+    <div id="login-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border-t-8 border-autumn-600">
+            <h2 class="text-2xl font-bold text-autumn-900 mb-2">Matematikos Pamokėlė</h2>
+            <p class="text-gray-600 mb-6 text-sm">Sveikųjų skaičių sudėtis ir atimtis (6 klasė). Įveskite savo vardą ir pavardę.</p>
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="mb-5">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Vardas ir Pavardė</label>
+                    <input type="text" id="student-name-input" required autofocus class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-autumn-500 focus:outline-none text-lg" placeholder="pvz., Jonas Jonaitis">
+                </div>
+                <button type="submit" id="start-btn" class="w-full bg-autumn-600 hover:bg-autumn-700 text-white font-bold py-3.5 rounded-xl transition duration-200 shadow-md text-lg">
+                    Pradėti
+                </button>
+            </form>
         </div>
     </div>
 
-    <!-- Pagrindinis turinys -->
-    <main class="max-w-5xl w-full grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        <!-- Korių laukas (Lapas) -->
-        <div class="md:col-span-2 bg-white rounded-3xl p-6 shadow-xl border border-amber-200 flex flex-col items-center justify-center relative">
-            <div class="flex justify-between w-full mb-4 px-2">
-                <span class="font-semibold text-amber-900">Mokinys: <span id="display-name" class="text-amber-600">-</span></span>
-                <span class="font-bold text-lg bg-amber-100 text-amber-800 px-3 py-1 rounded-full">Taškai: <span id="score-val">0</span></span>
-            </div>
-            
-            <!-- Grid su 40 koriukų -->
-            <div id="grid-container" class="grid grid-cols-5 sm:grid-cols-8 gap-2 w-full max-w-xl">
-                <!-- Sukuriama per JS -->
-            </div>
-            <p class="text-xs text-slate-400 mt-4 text-center">31–40 koriukai – patys sunkiausi su dešimtainiais skaičiais!🔥</p>
+    <!-- Pagrindinis Viršus (Header) -->
+    <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center border-b border-autumn-200">
+        <div>
+            <h1 class="text-base md:text-lg font-bold text-autumn-900">Sveikųjų skaičių sudėtis ir atimtis</h1>
+            <p class="text-xs text-gray-500">Mokinys: <span id="display-student-name" class="font-semibold text-autumn-700">-</span></p>
         </div>
+        <div class="flex items-center gap-3">
+            <div class="bg-autumn-100 border border-autumn-300 px-4 py-2 rounded-full text-autumn-900 font-bold text-sm shadow-inner">
+                Taškai: <span id="display-score">0</span>
+            </div>
+            <button onclick="openTeacherModal()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg font-medium border border-gray-300 transition">
+                Mokytojo skydelis
+            </button>
+        </div>
+    </header>
 
-        <!-- Šoninis skydelis: Uždavinių sprendimas -->
-        <div class="flex flex-col gap-6">
+    <!-- Pagrindinis Turinys -->
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div id="app-container" class="bg-white rounded-2xl shadow-xl max-w-xl w-full p-6 md:p-8 border border-autumn-100 relative">
             
-            <!-- Sprendimo kortelė -->
-            <div id="task-card" class="bg-white rounded-3xl p-6 shadow-xl border border-amber-200 hidden">
-                <div class="flex justify-between items-center mb-3 border-b pb-2">
-                    <h3 class="text-lg font-bold text-amber-900">Koriukas Nr. <span id="active-task-id">1</span></h3>
-                    <span id="task-badge" class="text-xs font-bold px-2 py-1 rounded-md bg-amber-100 text-amber-800">Paprastas</span>
+            <!-- Progreso juosta -->
+            <div class="mb-6">
+                <div class="flex justify-between text-xs font-semibold text-gray-600 mb-1.5">
+                    <span>Užduotis <span id="current-task-num">1</span> iš 20</span>
+                    <span id="task-category-label" class="text-autumn-700 font-bold">Apšilimas (1 veiksmas)</span>
                 </div>
-                <div class="text-2xl font-bold text-center text-slate-700 my-6 bg-amber-50 py-4 rounded-2xl border border-amber-200" id="task-expression">
-                    -5 + (-3)
+                <div class="w-full bg-gray-200 h-2.5 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="bg-autumn-600 h-full transition-all duration-300" style="width: 5%"></div>
                 </div>
-
-                <!-- Variantai (1-15 uždaviniai) -->
-                <div id="options-container" class="grid grid-cols-2 gap-2 mb-4">
-                    <!-- Mygtukų generavimas -->
-                </div>
-
-                <!-- Įvesties laukelis (16-40 uždaviniai) -->
-                <div id="input-container" class="hidden flex flex-col gap-3">
-                    <input type="text" id="manual-answer-input" placeholder="Pvm. -2.2 arba -2,2" class="border-2 border-amber-300 rounded-xl px-4 py-2 text-center text-xl focus:outline-none focus:border-amber-600">
-                    <button onclick="submitInputValue()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-xl transition">Tikrinti atsakymą</button>
-                </div>
-
-                <div id="task-feedback" class="mt-4 text-center font-bold text-sm"></div>
             </div>
 
-            <!-- Pradinė kortelė (kai nepasirinktas koriukas) -->
-            <div id="welcome-card" class="bg-amber-100/60 rounded-3xl p-6 shadow-md border border-amber-200 text-center flex flex-col justify-center items-center h-full">
-                <span class="text-4xl mb-2">🍁</span>
-                <h4 class="font-bold text-amber-900 text-lg">Sveikųjų ir dešimtainių iššūkis</h4>
-                <p class="text-sm text-slate-600 mt-1">Spauskite lapo koriukus kairėje. Išspręskite visus 40 uždavinių ir įrodykite, kad esate matematikos ekspertas!</p>
+            <!-- Uždavinio tekstas -->
+            <div class="mb-6 bg-autumn-50 border border-autumn-200 rounded-xl p-5 min-h-[100px] flex items-center justify-center text-center">
+                <div id="task-text" class="text-xl md:text-2xl font-bold text-gray-800 leading-relaxed">
+                    Kraunasi uždavinys...
+                </div>
             </div>
+
+            <!-- Mąstymo pauzės indikatorius -->
+            <div id="cooldown-banner" class="mb-5 bg-amber-100 border border-amber-300 text-amber-900 px-4 py-2.5 rounded-xl text-sm font-medium flex items-center justify-between">
+                <span>Perskaitykite sąlygą prieš atsakydami...</span>
+                <span id="cooldown-timer" class="font-extrabold text-lg text-autumn-700">3s</span>
+            </div>
+
+            <!-- Atsakymų pasirinkimai / Įvesties laukas -->
+            <div id="answers-container" class="mb-6"></div>
+
+            <!-- Grįžtamasis ryšys / Taisyklė -->
+            <div id="feedback-box" class="hidden p-4 rounded-xl text-sm mb-4 leading-relaxed shadow-sm"></div>
 
         </div>
     </main>
 
-    <!-- Pabaigos modalas -->
-    <div id="win-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center transform scale-95 transition-transform">
-            <span class="text-5xl mb-2 inline-block">🏆</span>
-            <h2 class="text-3xl font-bold text-amber-900 mb-2">Super! <span id="final-name"></span></h2>
-            <p class="text-slate-600 mb-4">Išsprendei visus 40 koriukų, įveikei sunkiuosius dešimtainius skaičius ir pasiruošei atostogoms!</p>
-            <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 mb-6">
-                <span class="text-sm text-slate-500 block">Galutinis rezultatas:</span>
-                <span id="final-score" class="text-4xl font-extrabold text-amber-700">0</span> <span class="text-amber-800 font-bold">tšk.</span>
+    <!-- Mokytojo Skydelio Modalinis Langas -->
+    <div id="teacher-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h3 class="text-xl font-bold text-autumn-900">Mokytojo Stebėjimo Skydelis (Live Dashboard)</h3>
+                <button onclick="closeTeacherModal()" class="text-gray-400 hover:text-gray-700 font-bold text-xl px-2">✕</button>
             </div>
-            <button onclick="location.reload()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition shadow-lg">Žaisti dar kartą</button>
+            
+            <div id="teacher-auth" class="mb-4">
+                <p class="text-sm text-gray-600 mb-2">Įveskite mokytojo PIN kodą (PIN: 1234):</p>
+                <div class="flex gap-2">
+                    <input type="password" id="teacher-pin" class="border border-gray-300 px-3 py-2 rounded-lg text-sm" placeholder="PIN kodas">
+                    <button onclick="verifyTeacherPin()" class="bg-autumn-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-autumn-700">Prisijungti</button>
+                </div>
+            </div>
+
+            <div id="teacher-content" class="hidden overflow-y-auto flex-grow">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-autumn-100 text-autumn-900 border-b border-autumn-200">
+                            <th class="p-3 font-bold">Mokinys</th>
+                            <th class="p-3 font-bold">Progresas</th>
+                            <th class="p-3 font-bold">Dabartinė sąlyga</th>
+                            <th class="p-3 font-bold">Bandymai</th>
+                            <th class="p-3 font-bold">Laikas (s)</th>
+                            <th class="p-3 font-bold">Taškai</th>
+                            <th class="p-3 font-bold">Būsena</th>
+                        </tr>
+                    </thead>
+                    <tbody id="students-table-body"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <!-- Žaidimo logika -->
+    <footer class="text-center py-3 text-xs text-gray-400">
+        Matematikos interaktyvi pratybų pamoka &bull; 6 Klasė
+    </footer>
+
+    <!-- JavaScript Logika -->
     <script>
-        let playerName = "";
+        let studentName = "";
+        let studentId = "st_" + Math.random().toString(36).substr(2, 9);
         let score = 0;
-        let activeTaskIndex = null;
-        let solvedCount = 0;
+        let currentTaskIndex = 0;
+        let currentAttempts = 0;
+        let taskStartTime = Date.now();
+        let tasks = [];
+        let currentTask = null;
+        let isCooldownActive = false;
 
-        // 40 uždavinių masyvas
-        const tasks = [
-            // 1-15: Pasirinkimai (Sveikieji skaičiai)
-            { expr: "-5 + (-8)", answer: -13, type: "choice", options: [-13, 13, -3, 3] },
-            { expr: "12 + (-7)", answer: 5, type: "choice", options: [-5, 5, 19, -19] },
-            { expr: "-15 - (-6)", answer: -9, type: "choice", options: [-9, 9, -21, 21] },
-            { expr: "-4 - 9", answer: -13, type: "choice", options: [5, -5, -13, 13] },
-            { expr: "10 + (-14)", answer: -4, type: "choice", options: [4, -4, 24, -24] },
-            { expr: "-12 - (-12)", answer: 0, type: "choice", options: [-24, 24, 0, 1] },
-            { expr: "-7 + 15", answer: 8, type: "choice", options: [-8, 8, 22, -22] },
-            { expr: "8 - (-11)", answer: 19, type: "choice", options: [-19, 19, 3, -3] },
-            { expr: "-9 + (-9)", answer: -18, type: "choice", options: [0, -18, 18, -81] },
-            { expr: "25 - 34", answer: -9, type: "choice", options: [9, -9, 59, -59] },
-            { expr: "-6 + 18", answer: 12, type: "choice", options: [-12, 12, 24, -24] },
-            { expr: "-11 - 5", answer: -16, type: "choice", options: [16, -16, 6, -6] },
-            { expr: "14 + (-20)", answer: -6, type: "choice", options: [-6, 6, 34, -34] },
-            { expr: "-3 - (-17)", answer: 14, type: "choice", options: [-14, 14, 20, -20] },
-            { expr: "-8 + (-4)", answer: -12, type: "choice", options: [12, -12, 4, -4] },
+        function handleLogin(event) {
+            event.preventDefault();
+            const inputVal = document.getElementById("student-name-input").value.trim();
+            if (!inputVal) return;
             
-            // 16-30: Įvedami (Sveikieji skaičiai)
-            { expr: "-10 + 22", answer: 12, type: "input" },
-            { expr: "15 - (-5)", answer: 20, type: "input" },
-            { expr: "-16 - 4", answer: -20, type: "input" },
-            { expr: "7 + (-19)", answer: -12, type: "input" },
-            { expr: "-14 + (-6)", answer: -20, type: "input" },
-            { expr: "30 - 45", answer: -15, type: "input" },
-            { expr: "-8 - (-8)", answer: 0, type: "input" },
-            { expr: "-21 + 11", answer: -10, type: "input" },
-            { expr: "13 + (-13)", answer: 0, type: "input" },
-            { expr: "-17 - (-3)", answer: -14, type: "input" },
-            { expr: "9 + (-15)", answer: -6, type: "input" },
-            { expr: "-25 - 10", answer: -35, type: "input" },
-            { expr: "18 + (-22)", answer: -4, type: "input" },
-            { expr: "-12 - (-19)", answer: 7, type: "input" },
-            { expr: "-9 + (-11)", answer: -20, type: "input" },
-
-            // 31-40: Įvedami (Dešimtainiai skaičiai – Kiečiausiems)
-            { expr: "-4,5 + 2,3", answer: -2.2, type: "input", hard: true },
-            { expr: "-1,2 - (-3,8)", answer: 2.6, type: "input", hard: true },
-            { expr: "5,4 + (-8,1)", answer: -2.7, type: "input", hard: true },
-            { expr: "-0,75 + (-0,25)", answer: -1, type: "input", hard: true },
-            { expr: "-6,3 - 2,7", answer: -9, type: "input", hard: true },
-            { expr: "3,5 - 7,2", answer: -3.7, type: "input", hard: true },
-            { expr: "-2,8 + (-1,4)", answer: -4.2, type: "input", hard: true },
-            { expr: "-0,6 - (-2,4)", answer: 1.8, type: "input", hard: true },
-            { expr: "1,5 + (-4,9)", answer: -3.4, type: "input", hard: true },
-            { expr: "-10 - (-3,5)", answer: -6.5, type: "input", hard: true }
-        ];
-
-        let taskStates = Array(40).fill("unsolved");
-
-        function startGame() {
-            const input = document.getElementById("student-name-input").value.trim();
-            if (!input) {
-                alert("Prašome įvesti savo vardą!");
-                return;
+            studentName = inputVal;
+            document.getElementById("display-student-name").textContent = studentName;
+            
+            // Garantuotai uždarome modalinį langą
+            document.getElementById("login-modal").classList.add("hidden");
+            
+            try {
+                generateTasks();
+                loadTask();
+            } catch (err) {
+                console.error("Klaida generuojant užduotis:", err);
+                alert("Įvyko klaida paleidžiant užduotis. Patikrinkite naršyklės konsolę.");
             }
-            playerName = input;
-            document.getElementById("display-name").innerText = playerName;
-            document.getElementById("name-modal").style.display = "none";
-            initGrid();
+            
+            syncToSupabase("sprendžia");
         }
 
-        function initGrid() {
-            const container = document.getElementById("grid-container");
+        function randInt(min, max, avoidZero = true) {
+            let res = 0;
+            while (res === 0 && avoidZero) {
+                res = Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+            return avoidZero ? res : Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateTasks() {
+            tasks = [];
+
+            // 1–5 UŽDUOTYS: Apšilimas (1 veiksmas)
+            let a1 = randInt(5, 40), b1 = randInt(5, 40);
+            tasks.push({ type: "mcq", category: "Apšilimas (1 veiksmas)", text: `Apskaičiuokite: −${a1} + ${b1}`, answer: -a1 + b1, rule: "Sudėdami skirtingų ženklų skaičius, iš didesnio modulio atimame mažesnį ir paliekame didesniojo skaičiaus ženklą." });
+
+            let a2 = randInt(5, 40), b2 = randInt(5, 40);
+            tasks.push({ type: "mcq", category: "Apšilimas (1 veiksmas)", text: `Apskaičiuokite: −${a2} − ${b2}`, answer: -a2 - b2, rule: "Sudėdami du neigiamus skaičius, jų modulius sudedame ir parašome minuso ženklą." });
+
+            let a3 = randInt(10, 50), b3 = randInt(5, 40);
+            tasks.push({ type: "mcq", category: "Apšilimas (1 veiksmas)", text: `Apskaičiuokite: ${a3} − (−${b3})`, answer: a3 + b3, rule: "Du minusai šalia virsta pliusu: a − (−b) = a + b." });
+
+            let a4 = randInt(10, 50), b4 = randInt(5, 40);
+            tasks.push({ type: "mcq", category: "Apšilimas (1 veiksmas)", text: `Apskaičiuokite: −${a4} − (−${b4})`, answer: -a4 + b4, rule: "Minusas prieš skliaustus pakeičia ženklą: −a − (−b) = −a + b." });
+
+            let a5 = randInt(10, 40), b5 = randInt(10, 40);
+            tasks.push({ type: "mcq", category: "Apšilimas (1 veiksmas)", text: `Apskaičiuokite: −${a5} + (−${b5})`, answer: -a5 - b5, rule: "Pliusas ir minusas šalia virsta minusu: −a + (−b) = −a − b." });
+
+            // 6–12 UŽDUOTYS: Standartas (2 veiksmai)
+            let a6 = randInt(10, 40), b6 = randInt(10, 50), c6 = randInt(10, 40);
+            tasks.push({ type: "input", category: "Standartas (2 veiksmai)", text: `Apskaičiuokite: −${a6} + ${b6} − ${c6}`, answer: -a6 + b6 - c6, rule: "Veiksmus atlikite iš kairės į dešinę pagal eilės tvarką." });
+
+            let a7 = randInt(10, 40), b7 = randInt(10, 40), c7 = randInt(10, 40);
+            tasks.push({ type: "input", category: "Standartas (2 veiksmai)", text: `Apskaičiuokite: −${a7} − (−${b7}) + (−${c7})`, answer: -a7 + b7 - c7, rule: "Pirmiausia supaprastinkite ženklus: −(−b) = +b, o +(−c) = −c." });
+
+            let tStart = randInt(-15, -2), tDrop = randInt(3, 10), tRise = randInt(5, 15);
+            tasks.push({ type: "input", category: "Tekstinis uždavinys", text: `Lauke ryte temperatūra buvo ${tStart} °C. Iki pietų ji nukrito ${tDrop} °C, o iki vakaro pakilo ${tRise} °C. Kokia temperatūra vakare (°C)?`, answer: tStart - tDrop + tRise, rule: "Temperatūros kritimas reiškia atimtį, o pakilimas – sudėtį." });
+
+            let nStart = randInt(-40, -10), nDown = randInt(5, 20), nUp = randInt(10, 30);
+            tasks.push({ type: "input", category: "Tekstinis uždavinys", text: `Naro pradinė padėtis žemiau jūros lygio yra ${nStart} m. Jis nusileido dar ${nDown} m gilyn, o po to pakilo ${nUp} m aukštyn. Kokia dabar naro padėtis metrais?`, answer: nStart - nDown + nUp, rule: "Nusileidimas gilyn atima metrus, o pakilimas aukštyn – prideda." });
+
+            let a10 = randInt(15, 60), b10 = randInt(20, 60), c10 = randInt(10, 40);
+            tasks.push({ type: "input", category: "Standartas (2 veiksmai)", text: `Apskaičiuokite: ${a10} − ${b10} − (−${c10})`, answer: a10 - b10 + c10, rule: "Minus minusas duoda pliusą." });
+
+            let a11 = randInt(10, 30), b11 = randInt(10, 30), c11 = randInt(10, 30);
+            tasks.push({ type: "input", category: "Standartas (2 veiksmai)", text: `Apskaičiuokite: −${a11} − ${b11} − ${c11}`, answer: -a11 - b11 - c11, rule: "Visi trys neigiami – sudėkite modulius ir parašykite minusą." });
+
+            let a12 = randInt(10, 50), b12 = randInt(15, 40), c12 = randInt(10, 30);
+            tasks.push({ type: "input", category: "Standartas (2 veiksmai)", text: `Apskaičiuokite: ${a12} + (−${b12}) − (−${c12})`, answer: a12 - b12 + c12, rule: "Pakeiskite dvigubus ženklus." });
+
+            // 13–20 UŽDUOTYS: Iššūkis (Skliaustai)
+            let a13 = randInt(10, 50), b13 = randInt(5, 30), c13 = randInt(10, 40);
+            tasks.push({ type: "input", category: "Iššūkis (Skliaustai)", text: `Apskaičiuokite: ${a13} − (${b13} − ${c13})`, answer: a13 - (b13 - c13), rule: "Pirmiausia atlikite veiksmą skliaustuose." });
+
+            let a14 = randInt(5, 25), b14 = randInt(30, 60), c14 = randInt(10, 40);
+            tasks.push({ type: "input", category: "Iššūkis (Skliaustai)", text: `Apskaičiuokite: −(${a14} − ${b14}) − ${c14}`, answer: -(a14 - b14) - c14, rule: "Apskaičiuokite skliaustų reikšmę." });
+
+            let a15 = randInt(10, 40), b15 = randInt(15, 40), c15 = randInt(5, 30), d15 = randInt(10, 30);
+            tasks.push({ type: "input", category: "Iššūkis (Skliaustai)", text: `Apskaičiuokite: ${a15} + (−${b15} + ${c15}) − ${d15}`, answer: a15 + (-b15 + c15) - d15, rule: "Iš pradžių suskaičiuokite reiškinį skliaustuose." });
+
+            let bankStart = randInt(-80, -20), bankIn = randInt(50, 120), bankOut = randInt(30, 70);
+            tasks.push({ type: "input", category: "Kontekstinis (Finansai)", text: `Banko sąskaitoje buvo ${bankStart} € skola. Į sąskaitą pervesta ${bankIn} €, o po to atskaičiuotas ${bankOut} € mokestis. Koks dabar sąskaitos likutis (€)?`, answer: bankStart + bankIn - bankOut, rule: "Skola yra neigiamas skaičius." });
+
+            let a17 = randInt(10, 30), b17 = randInt(10, 30), c17 = randInt(5, 25), d17 = randInt(10, 35);
+            tasks.push({ type: "input", category: "Iššūkis (Skliaustai)", text: `Apskaičiuokite: −(${a17} + ${b17}) + (${c17} − ${d17})`, answer: -(a17 + b17) + (c17 - d17), rule: "Apskaičiuokite abiejų skliaustų reikšmes atskirai." });
+
+            let planeAlt = randInt(300, 800), subDepth = randInt(-150, -50), altDrop = randInt(100, 200);
+            tasks.push({ type: "input", category: "Kontekstinis (Judėjimas)", text: `Lėktuvas skrieja ${planeAlt} m aukštyje, o povandeninis laivas yra ${subDepth} m gylyje. Lėktuvas nusileido ${altDrop} m žemyn. Koks dabar atstumas metrais tarp lėktuvo ir laivo?`, answer: (planeAlt - altDrop) - subDepth, rule: "Atstumas apskaičiuojamas iš viršutinio aukščio atimant apatinio padėtį." });
+
+            let a19 = randInt(10, 40), b19 = randInt(20, 50), c19 = randInt(5, 30);
+            tasks.push({ type: "input", category: "Iššūkis (Skliaustai)", text: `Apskaičiuokite: −${a19} − (${b19} + (−${c19}))`, answer: -a19 - (b19 - c19), rule: "Skliaustuose b + (−c) yra b − c." });
+
+            let a20 = randInt(10, 30), b20 = randInt(20, 50), c20 = randInt(5, 20), d20 = randInt(20, 40);
+            tasks.push({ type: "input", category: "Didysis iššūkis", text: `Apskaičiuokite: (${a20} − ${b20}) − (${c20} − ${d20})`, answer: (a20 - b20) - (c20 - d20), rule: "Apskaičiuokite pirmojo ir antrojo skliaustų rezultatus." });
+        }
+
+        function loadTask() {
+            if (currentTaskIndex >= tasks.length) {
+                showFinishScreen();
+                return;
+            }
+
+            currentTask = tasks[currentTaskIndex];
+            currentAttempts = 0;
+            taskStartTime = Date.now();
+
+            document.getElementById("current-task-num").textContent = currentTaskIndex + 1;
+            document.getElementById("task-category-label").textContent = currentTask.category;
+            document.getElementById("task-text").textContent = currentTask.text;
+            document.getElementById("progress-bar").style.width = `${((currentTaskIndex + 1) / tasks.length) * 100}%`;
+            document.getElementById("feedback-box").classList.add("hidden");
+
+            const container = document.getElementById("answers-container");
             container.innerHTML = "";
-            tasks.forEach((t, index) => {
-                const cell = document.createElement("div");
-                let baseStyle = "flex items-center justify-center rounded-2xl border-2 font-bold text-sm cursor-pointer transition select-none shadow-sm h-11 ";
-                
-                if(t.hard) {
-                    baseStyle += "border-purple-300 bg-purple-50/70 hover:bg-purple-100 text-purple-900";
-                } else {
-                    baseStyle += "border-amber-300 bg-amber-50/50 hover:bg-amber-100 text-slate-700";
+
+            if (currentTask.type === "mcq") {
+                renderMCQ(container, currentTask.answer);
+            } else {
+                renderInput(container);
+            }
+
+            startCooldown(3);
+            syncToSupabase("sprendžia");
+        }
+
+        function renderMCQ(container, correctAnswer) {
+            let options = [correctAnswer];
+            while (options.length < 4) {
+                let offset = randInt(-10, 10);
+                let wrongAns = correctAnswer + offset;
+                if (!options.includes(wrongAns)) {
+                    options.push(wrongAns);
                 }
+            }
+            options.sort(() => Math.random() - 0.5);
 
-                cell.className = baseStyle;
-                cell.id = `cell-${index}`;
-                cell.innerText = index + 1;
-                cell.onclick = () => selectTask(index);
-                container.appendChild(cell);
+            let grid = document.createElement("div");
+            grid.className = "grid grid-cols-2 gap-3.5";
+
+            options.forEach(opt => {
+                let btn = document.createElement("button");
+                btn.className = "answer-btn w-full py-3.5 px-4 bg-white border-2 border-autumn-200 hover:border-autumn-500 rounded-xl text-xl font-bold text-gray-800 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed";
+                btn.textContent = opt;
+                btn.onclick = () => checkAnswer(opt, btn);
+                grid.appendChild(btn);
             });
+            container.appendChild(grid);
         }
 
-        function selectTask(index) {
-            activeTaskIndex = index;
-            document.getElementById("welcome-card").style.display = "none";
-            document.getElementById("task-card").style.display = "block";
-            document.getElementById("active-task-id").innerText = index + 1;
-            document.getElementById("task-expression").innerText = tasks[index].expr;
-            document.getElementById("task-feedback").innerText = "";
+        function renderInput(container) {
+            let wrapper = document.createElement("form");
+            wrapper.className = "flex flex-col sm:flex-row gap-3";
+            wrapper.onsubmit = (e) => {
+                e.preventDefault();
+                const val = document.getElementById("user-answer-input").value.trim();
+                if (val !== "" && !isCooldownActive) {
+                    checkAnswer(parseInt(val, 10), document.getElementById("submit-input-btn"));
+                }
+            };
 
-            const badge = document.getElementById("task-badge");
-            if (tasks[index].hard) {
-                badge.innerText = "🔥 Dešimtainiai";
-                badge.className = "text-xs font-bold px-2 py-1 rounded-md bg-purple-100 text-purple-800 border border-purple-200";
+            wrapper.innerHTML = `
+                <input type="number" id="user-answer-input" step="1" required placeholder="Įveskite sveikąjį skaičių" 
+                       class="flex-grow px-4 py-3.5 border-2 border-autumn-300 rounded-xl text-xl font-bold text-gray-800 focus:outline-none focus:border-autumn-600 disabled:bg-gray-100 disabled:cursor-not-allowed">
+                <button type="submit" id="submit-input-btn" 
+                        class="answer-btn bg-autumn-600 hover:bg-autumn-700 text-white font-bold px-8 py-3.5 rounded-xl text-lg transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+                    Tikrinti
+                </button>
+            `;
+            container.appendChild(wrapper);
+        }
+
+        function startCooldown(seconds) {
+            isCooldownActive = true;
+            const banner = document.getElementById("cooldown-banner");
+            const timerEl = document.getElementById("cooldown-timer");
+            const answerElements = document.querySelectorAll(".answer-btn, #user-answer-input");
+
+            banner.classList.remove("hidden");
+            answerElements.forEach(el => el.disabled = true);
+
+            let timeLeft = seconds;
+            timerEl.textContent = `${timeLeft}s`;
+
+            let interval = setInterval(() => {
+                timeLeft--;
+                timerEl.textContent = `${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    banner.classList.add("hidden");
+                    answerElements.forEach(el => el.disabled = false);
+                    isCooldownActive = false;
+                    const inputEl = document.getElementById("user-answer-input");
+                    if (inputEl) inputEl.focus();
+                }
+            }, 1000);
+        }
+
+        function checkAnswer(userAns, targetElement) {
+            if (isCooldownActive || isNaN(userAns)) return;
+
+            let timeSpent = Math.floor((Date.now() - taskStartTime) / 1000);
+            const feedbackBox = document.getElementById("feedback-box");
+
+            if (userAns === currentTask.answer) {
+                score += 10;
+                document.getElementById("display-score").textContent = score;
+
+                feedbackBox.className = "p-4 rounded-xl text-sm mb-4 bg-green-50 border border-green-300 text-green-900 shadow-sm";
+                feedbackBox.innerHTML = "<strong>Teisingai! (+10 taškų)</strong> Puikus darbas, pereinama prie kito uždavinio.";
+                feedbackBox.classList.remove("hidden");
+
+                document.querySelectorAll(".answer-btn, #user-answer-input").forEach(el => el.disabled = true);
+                syncToSupabase("teisingai", timeSpent);
+
+                setTimeout(() => {
+                    currentTaskIndex++;
+                    loadTask();
+                }, 1200);
+
             } else {
-                badge.innerText = "Paprastas";
-                badge.className = "text-xs font-bold px-2 py-1 rounded-md bg-amber-100 text-amber-800 border border-amber-200";
+                currentAttempts++;
+                score = Math.max(0, score - 5);
+                document.getElementById("display-score").textContent = score;
+
+                feedbackBox.className = "p-4 rounded-xl text-sm mb-4 bg-red-50 border border-red-300 text-red-900 shadow-sm leading-relaxed";
+                feedbackBox.innerHTML = `<strong>Neteisingai! (-5 taškai).</strong><br>${currentTask.rule}`;
+                feedbackBox.classList.remove("hidden");
+
+                if (currentTask.type === "mcq" && targetElement) {
+                    targetElement.classList.add("bg-red-100", "border-red-400", "text-red-700");
+                    targetElement.disabled = true;
+                }
+                syncToSupabase("suklydo", timeSpent);
             }
+        }
 
-            const optContainer = document.getElementById("options-container");
-            const inpContainer = document.getElementById("input-container");
+        function showFinishScreen() {
+            document.getElementById("app-container").innerHTML = `
+                <div class="text-center py-8">
+                    <div class="text-5xl mb-3">🎉</div>
+                    <h2 class="text-3xl font-extrabold text-autumn-900 mb-2">Pamoka baigta!</h2>
+                    <p class="text-gray-600 mb-6">Sėkmingai įveikėte visas 20 sveikųjų skaičių užduočių.</p>
+                    <div class="inline-block bg-autumn-100 border-2 border-autumn-300 px-6 py-4 rounded-2xl text-2xl font-black text-autumn-900 mb-6 shadow-inner">
+                        Galutinis rezultatas: ${score} taškai
+                    </div>
+                    <div>
+                        <button onclick="location.reload()" class="bg-autumn-600 hover:bg-autumn-700 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg transition">
+                            Spręsti iš naujo
+                        </button>
+                    </div>
+                </div>
+            `;
+            syncToSupabase("baigta");
+        }
 
-            if (tasks[index].type === "choice") {
-                optContainer.style.display = "grid";
-                inpContainer.style.display = "none";
-                optContainer.innerHTML = "";
-                let shuffledOpts = [...tasks[index].options].sort(() => Math.random() - 0.5);
-                shuffledOpts.forEach(opt => {
-                    const btn = document.createElement("button");
-                    btn.className = "bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold py-3 rounded-xl transition border border-amber-300 text-lg";
-                    btn.innerText = opt;
-                    btn.onclick = () => checkAnswer(opt);
-                    optContainer.appendChild(btn);
+        async function syncToSupabase(status, timeSpent = 0) {
+            if (!supabaseClient) return;
+            try {
+                await supabaseClient.from('student_sessions').upsert({
+                    id: studentId,
+                    student_name: studentName,
+                    current_task_id: currentTaskIndex + 1,
+                    current_task_text: currentTask ? currentTask.text : "Baigta",
+                    attempts: currentAttempts,
+                    time_spent_seconds: timeSpent,
+                    score: score,
+                    status: status,
+                    updated_at: new Date()
                 });
-            } else {
-                optContainer.style.display = "none";
-                inpContainer.style.display = "flex";
-                const field = document.getElementById("manual-answer-input");
-                field.value = "";
-                field.focus();
+            } catch (err) {
+                console.error("Supabase error:", err);
             }
         }
 
-        function submitInputValue() {
-            const rawVal = document.getElementById("manual-answer-input").value.trim();
-            if (rawVal === "") return;
-            // Pakeičiame kablelį į tašką, kad veiktų dešimtainiai skaičiai
-            const normalizedVal = Number(rawVal.replace(',', '.'));
-            if (isNaN(normalizedVal)) {
-                document.getElementById("task-feedback").innerText = "Įveskite skaičių!";
-                document.getElementById("task-feedback").className = "mt-4 text-center font-bold text-sm text-amber-600";
+        function openTeacherModal() {
+            document.getElementById("teacher-modal").classList.remove("hidden");
+        }
+        function closeTeacherModal() {
+            document.getElementById("teacher-modal").classList.add("hidden");
+        }
+
+        async function verifyTeacherPin() {
+            const pin = document.getElementById("teacher-pin").value;
+            if (pin === "1234") {
+                document.getElementById("teacher-auth").classList.add("hidden");
+                document.getElementById("teacher-content").classList.remove("hidden");
+                fetchTeacherData();
+
+                if (supabaseClient) {
+                    supabaseClient
+                      .channel('public:student_sessions')
+                      .on('postgres_changes', { event: '*', schema: 'public', table: 'student_sessions' }, payload => {
+                          fetchTeacherData();
+                      })
+                      .subscribe();
+                }
+            } else {
+                alert("Neteisingas PIN kodas!");
+            }
+        }
+
+        async function fetchTeacherData() {
+            const tbody = document.getElementById("students-table-body");
+            tbody.innerHTML = "";
+
+            if (!supabaseClient) {
+                tbody.innerHTML = `
+                    <tr class="border-b">
+                        <td class="p-3 font-semibold">${studentName || "Nenurodyta"}</td>
+                        <td class="p-3 font-bold">${currentTaskIndex + 1} / 20</td>
+                        <td class="p-3 text-xs text-gray-600 max-w-xs truncate">${currentTask ? currentTask.text : "-"}</td>
+                        <td class="p-3">${currentAttempts}</td>
+                        <td class="p-3">-</td>
+                        <td class="p-3 font-extrabold text-autumn-700">${score}</td>
+                        <td class="p-3"><span class="px-2 py-1 bg-amber-100 text-amber-900 rounded text-xs font-semibold">Vietinis režimas</span></td>
+                    </tr>
+                `;
                 return;
             }
-            checkAnswer(normalizedVal);
-        }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const manualInput = document.getElementById("manual-answer-input");
-            if(manualInput) {
-                manualInput.addEventListener("keypress", function(e) {
-                    if (e.key === 'Enter') {
-                        submitInputValue();
-                    }
-                });
-            }
-            const nameInput = document.getElementById("student-name-input");
-            if(nameInput) {
-                nameInput.addEventListener("keypress", function(e) {
-                    if (e.key === 'Enter') {
-                        startGame();
-                    }
-                });
-            }
-        });
+            try {
+                let { data, error } = await supabaseClient.from('student_sessions').select('*').order('updated_at', { ascending: false });
+                if (error) throw error;
 
-        function checkAnswer(selectedAns) {
-            const currentTask = tasks[activeTaskIndex];
-            const cell = document.getElementById(`cell-${activeTaskIndex}`);
-            const feedback = document.getElementById("task-feedback");
-
-            const isAlreadyCorrect = taskStates[activeTaskIndex] === "correct";
-
-            // Palyginame su paklaida dėl JavaScript plaukiojančio kablelio tikslumo (pvz., 0.1 + 0.2)
-            const isCorrect = Math.abs(selectedAns - currentTask.answer) < 0.001;
-
-            if (isCorrect) {
-                feedback.innerText = "Teisingai! (+10 tšk.)";
-                feedback.className = "mt-4 text-center font-bold text-sm text-green-600";
-                cell.className = "flex items-center justify-center rounded-2xl border-2 border-green-500 font-bold text-sm cursor-pointer transition bg-green-500 text-white select-none shadow-md h-11";
-                cell.innerText = "✓";
-
-                if (!isAlreadyCorrect) {
-                    score += 10;
-                    taskStates[activeTaskIndex] = "correct";
-                    solvedCount++;
+                if (data && data.length > 0) {
+                    data.forEach(st => {
+                        let statusColor = st.status === 'teisingai' ? 'bg-green-100 text-green-800' : 
+                                           st.status === 'suklydo' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800';
+                        tbody.innerHTML += `
+                            <tr class="border-b">
+                                <td class="p-3 font-semibold">${st.student_name}</td>
+                                <td class="p-3 font-bold">${st.current_task_id} / 20</td>
+                                <td class="p-3 text-xs text-gray-600 max-w-xs truncate">${st.current_task_text}</td>
+                                <td class="p-3">${st.attempts}</td>
+                                <td class="p-3">${st.time_spent_seconds}s</td>
+                                <td class="p-3 font-extrabold text-autumn-700">${st.score}</td>
+                                <td class="p-3"><span class="px-2.5 py-1 rounded text-xs font-bold ${statusColor}">${st.status}</span></td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-500">Nėra prisijungusių mokinių.</td></tr>`;
                 }
-            } else {
-                feedback.innerText = "Neteisingai! (-5 tšk.)";
-                feedback.className = "mt-4 text-center font-bold text-sm text-red-600";
-                cell.className = "flex items-center justify-center rounded-2xl border-2 border-red-500 font-bold text-sm cursor-pointer transition bg-red-500 text-white select-none shadow-md h-11";
-                cell.innerText = "✗";
-
-                if (!isAlreadyCorrect && taskStates[activeTaskIndex] !== "incorrect") {
-                    score -= 5;
-                    taskStates[activeTaskIndex] = "incorrect";
-                } else if (isAlreadyCorrect) {
-                    score -= 10;
-                    taskStates[activeTaskIndex] = "incorrect";
-                    solvedCount--;
-                }
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-500">Klaida gaunant duomenis iš bazės.</td></tr>`;
             }
-
-            document.getElementById("score-val").innerText = score;
-
-            if (solvedCount === 40) {
-                setTimeout(triggerWin, 800);
-            }
-        }
-
-        function triggerWin() {
-            document.getElementById("final-name").innerText = playerName;
-            document.getElementById("final-score").innerText = score;
-            document.getElementById("win-modal").style.display = "flex";
         }
     </script>
 </body>
