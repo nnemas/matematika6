@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sveikųjų skaičių sudėtis ir atimtis (6 kl.)</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Kontrolinis darbas Nr. 2 (K2) – 6 klasė</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase JS SDK CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         tailwind.config = {
@@ -14,453 +12,868 @@
                 extend: {
                     colors: {
                         autumn: {
-                            50: '#fffbe6',
-                            100: '#fef3c7',
-                            200: '#fde68a',
-                            500: '#d97706',
-                            600: '#b45309',
-                            700: '#92400e',
-                            800: '#78350f',
-                            900: '#451a03',
+                            50: '#fffbe6', 100: '#fef3c7', 200: '#fde68a',
+                            500: '#d97706', 600: '#b45309', 700: '#92400e',
+                            800: '#78350f', 900: '#451a03'
                         }
                     }
                 }
             }
         }
     </script>
+    <style>
+        @media print {
+            body * { visibility: hidden; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; background: white; color: black; padding: 10px; }
+            .no-print { display: none !important; }
+        }
+    </style>
 </head>
 <body class="bg-autumn-50 text-gray-800 font-sans min-h-screen flex flex-col justify-between">
 
-    <!-- SUPABASE KONFIGŪRACIJA -->
-    <script>
-        const SUPABASE_URL = 'https://kyrudsbytvcyfxkmiaeb.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'sb_publishable_TpYnyAUh4LwuVH7i6IssUQ_Stw-6weq';
-        let supabaseClient = null;
-        if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-            try {
-                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            } catch(e) { console.error("Supabase klaida:", e); }
-        }
-    </script>
-
-    <!-- Modalinis Prisijungimo Langas -->
+    <!-- PRISIJUNGIMO LANGAS -->
     <div id="login-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border-t-8 border-autumn-600">
-            <h2 class="text-2xl font-bold text-autumn-900 mb-2">Matematikos Pamokėlė</h2>
-            <p class="text-gray-600 mb-6 text-sm">Sveikųjų skaičių sudėtis ir atimtis (6 klasė). Įveskite savo vardą ir pavardę.</p>
-            <form id="login-form" onsubmit="handleLogin(event)">
-                <div class="mb-5">
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Vardas ir Pavardė</label>
-                    <input type="text" id="student-name-input" required autofocus class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-autumn-500 focus:outline-none text-lg" placeholder="pvz., Jonas Jonaitis">
-                </div>
-                <button type="submit" id="start-btn" class="w-full bg-autumn-600 hover:bg-autumn-700 text-white font-bold py-3.5 rounded-xl transition duration-200 shadow-md text-lg">
-                    Pradėti
+            <div class="flex justify-between items-start mb-2">
+                <h2 class="text-2xl font-bold text-autumn-900">Kontrolinis darbas Nr. 2</h2>
+                <button type="button" onclick="openTeacherModal()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-1.5 rounded-lg font-medium border border-gray-300">
+                    Mokytojui
                 </button>
-            </form>
+            </div>
+            <p class="text-gray-600 mb-5 text-sm">Racionaliųjų (sveikųjų ir dešimtainių) skaičių sudėtis ir atimtis (6 klasė). Variantą sistema parinks atsitiktinai.</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Vardas ir Pavardė</label>
+                    <input type="text" id="student-name-input" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-autumn-500 focus:outline-none text-base" placeholder="Įveskite vardą ir pavardę">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Pamokos kodas</label>
+                    <input type="password" id="lesson-code-input" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-autumn-500 focus:outline-none text-base uppercase font-bold tracking-widest" placeholder="Įveskite mokytojo pasakytą kodą">
+                </div>
+                <p id="login-error" class="text-red-600 text-sm font-bold hidden"></p>
+
+                <button type="button" id="start-btn" onclick="startExam()" class="w-full bg-autumn-600 hover:bg-autumn-700 text-white font-bold py-3.5 rounded-xl transition duration-200 shadow-md text-lg mt-2 cursor-pointer">
+                    Pradėti kontrolinį darbą
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Pagrindinis Viršus (Header) -->
-    <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center border-b border-autumn-200">
+    <!-- VIRŠUTINĖ JUOSTA -->
+    <header class="bg-white shadow-sm py-3 px-4 md:px-6 flex flex-wrap justify-between items-center border-b border-autumn-200 gap-2 no-print">
         <div>
-            <h1 class="text-base md:text-lg font-bold text-autumn-900">Sveikųjų skaičių sudėtis ir atimtis</h1>
-            <p class="text-xs text-gray-500">Mokinys: <span id="display-student-name" class="font-semibold text-autumn-700">-</span></p>
+            <h1 class="text-base md:text-lg font-bold text-autumn-900">Kontrolinis darbas Nr. 2 (K2): Sveikųjų ir dešimtainių skaičių sudėtis ir atimtis</h1>
+            <p class="text-xs text-gray-600">
+                Mokinys: <span id="display-student-name" class="font-bold text-autumn-800">-</span> 
+                &bull; <span id="display-variant" class="font-semibold">-</span>
+            </p>
         </div>
-        <div class="flex items-center gap-3">
-            <div class="bg-autumn-100 border border-autumn-300 px-4 py-2 rounded-full text-autumn-900 font-bold text-sm shadow-inner">
-                Taškai: <span id="display-score">0</span>
+        <div class="flex items-center gap-2 md:gap-3">
+            <button type="button" id="cheat-sheet-btn" onclick="toggleCheatSheet()" class="hidden bg-blue-50 hover:bg-blue-100 border border-blue-300 text-blue-800 px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold transition">
+                📘 Ženklų atmintinė
+            </button>
+            <div id="timer-box" class="bg-autumn-100 border border-autumn-300 px-3.5 py-1.5 rounded-full text-autumn-900 font-bold text-sm">
+                ⏱️ <span id="timer-display">40:00</span>
             </div>
-            <button onclick="openTeacherModal()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg font-medium border border-gray-300 transition">
+            <button type="button" onclick="openTeacherModal()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg font-medium border border-gray-300">
                 Mokytojo skydelis
             </button>
         </div>
     </header>
 
-    <!-- Pagrindinis Turinys -->
+    <!-- ŽENKLŲ ATMINTINĖ -->
+    <div id="cheat-sheet-panel" class="hidden bg-blue-50 border-b border-blue-200 px-4 py-3 text-xs md:text-sm text-blue-950 no-print">
+        <div class="max-w-3xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
+                <div><strong>1. Vienodi ženklai:</strong> sudedame skaičius, paliekame jų ženklą. <em>Pvz.: -5 - 3 = -8</em></div>
+                <div><strong>2. Skirtingi ženklai:</strong> iš didesnio atimame mažesnį, rašome didesniojo ženklą. <em>Pvz.: -10 + 4 = -6</em></div>
+                <div><strong>3. Du minusai šalia:</strong> virsta pliusu. <em>Pvz.: 7 - (-3) = 7 + 3 = 10</em></div>
+                <div><strong>4. Pliusas ir minusas:</strong> virsta minusu. <em>Pvz.: 7 + (-3) = 7 - 3 = 4</em></div>
+            </div>
+            <button type="button" onclick="toggleCheatSheet()" class="text-blue-700 underline text-xs font-semibold shrink-0">Slėpti</button>
+        </div>
+    </div>
+
+    <!-- PAGRINDINIS TURINYS -->
     <main class="flex-grow flex items-center justify-center p-4">
-        <div id="app-container" class="bg-white rounded-2xl shadow-xl max-w-xl w-full p-6 md:p-8 border border-autumn-100 relative">
-            
-            <!-- Progreso juosta -->
-            <div class="mb-6">
-                <div class="flex justify-between text-xs font-semibold text-gray-600 mb-1.5">
-                    <span>Užduotis <span id="current-task-num">1</span> iš 20</span>
-                    <span id="task-category-label" class="text-autumn-700 font-bold">Apšilimas (1 veiksmas)</span>
+        <div id="app-container" class="bg-white rounded-2xl shadow-xl max-w-3xl w-full p-5 md:p-8 border border-autumn-100">
+            <div class="mb-5">
+                <div class="flex justify-between items-center text-xs font-semibold text-gray-500 mb-2">
+                    <span>Pasirinkite uždavinį (galite grįžti ir pasitikrinti):</span>
+                    <span id="answered-counter" class="text-autumn-700 font-bold">Atsakyta: 0 / 30</span>
                 </div>
-                <div class="w-full bg-gray-200 h-2.5 rounded-full overflow-hidden">
-                    <div id="progress-bar" class="bg-autumn-600 h-full transition-all duration-300" style="width: 5%"></div>
-                </div>
+                <div id="task-nav-buttons" class="grid grid-cols-4 sm:grid-cols-8 gap-2"></div>
             </div>
 
-            <!-- Uždavinio tekstas -->
-            <div class="mb-6 bg-autumn-50 border border-autumn-200 rounded-xl p-5 min-h-[100px] flex items-center justify-center text-center">
-                <div id="task-text" class="text-xl md:text-2xl font-bold text-gray-800 leading-relaxed">
-                    Kraunasi uždavinys...
+            <!-- 5 SEKUNDŽIŲ MĄSTYMO PAUZĖS JUOSTA -->
+            <div id="cooldown-banner" class="hidden mb-4 bg-amber-100 border border-amber-300 text-amber-900 px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-between">
+                <span>⏳ Atidžiai perskaitykite sąlygas prieš įvesdami atsakymus...</span>
+                <span id="cooldown-timer" class="font-black text-lg text-autumn-800">5s</span>
+            </div>
+
+            <div class="flex flex-wrap justify-between items-center gap-2 border-b border-gray-200 pb-3 mb-4">
+                <div>
+                    <span id="task-level-badge" class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-autumn-100 text-autumn-800 mb-1">Slenkstinis lygis</span>
+                    <h2 id="task-title" class="text-lg md:text-xl font-bold text-gray-900">1. Sudėkite:</h2>
+                </div>
+                <div id="task-points-badge" class="text-sm font-extrabold text-autumn-700 bg-autumn-50 px-3 py-1 rounded-lg border border-autumn-200">2 tšk.</div>
+            </div>
+
+            <div id="subtasks-container" class="space-y-4 mb-6"></div>
+
+            <div class="flex flex-wrap justify-between items-center pt-4 border-t border-gray-200 gap-3">
+                <button type="button" id="prev-btn" onclick="changeTask(-1)" class="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-100 disabled:opacity-40">
+                    ← Ankstesnis
+                </button>
+                <div class="flex gap-3">
+                    <button type="button" id="next-btn" onclick="changeTask(1)" class="px-6 py-2.5 rounded-xl bg-autumn-600 hover:bg-autumn-700 text-white font-bold shadow">
+                        Kitas uždavinys →
+                    </button>
+                    <button type="button" id="finish-btn" onclick="confirmFinish()" class="px-6 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold shadow">
+                        ✓ Baigti ir pateikti darbą
+                    </button>
                 </div>
             </div>
-
-            <!-- Mąstymo pauzės indikatorius -->
-            <div id="cooldown-banner" class="mb-5 bg-amber-100 border border-amber-300 text-amber-900 px-4 py-2.5 rounded-xl text-sm font-medium flex items-center justify-between">
-                <span>Perskaitykite sąlygą prieš atsakydami...</span>
-                <span id="cooldown-timer" class="font-extrabold text-lg text-autumn-700">3s</span>
-            </div>
-
-            <!-- Atsakymų pasirinkimai / Įvesties laukas -->
-            <div id="answers-container" class="mb-6"></div>
-
-            <!-- Grįžtamasis ryšys / Taisyklė -->
-            <div id="feedback-box" class="hidden p-4 rounded-xl text-sm mb-4 leading-relaxed shadow-sm"></div>
-
         </div>
     </main>
 
-    <!-- Mokytojo Skydelio Modalinis Langas -->
-    <div id="teacher-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 hidden">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 max-h-[90vh] flex flex-col">
+    <!-- MOKYTOJO SKYDELIS -->
+    <div id="teacher-modal" class="fixed inset-0 bg-black/60 items-center justify-center z-50 p-4 hidden no-print">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-6xl w-full p-6 max-h-[92vh] flex flex-col">
             <div class="flex justify-between items-center mb-4 border-b pb-3">
-                <h3 class="text-xl font-bold text-autumn-900">Mokytojo Stebėjimo Skydelis (Live Dashboard)</h3>
-                <button onclick="closeTeacherModal()" class="text-gray-400 hover:text-gray-700 font-bold text-xl px-2">✕</button>
+                <h3 class="text-xl font-bold text-autumn-900">Mokytojo Stebėjimo ir Vertinimo Skydelis</h3>
+                <button type="button" onclick="closeTeacherModal()" class="text-gray-400 hover:text-gray-700 font-bold text-xl px-2">✕</button>
             </div>
-            
             <div id="teacher-auth" class="mb-4">
-                <p class="text-sm text-gray-600 mb-2">Įveskite mokytojo PIN kodą (PIN: 1234):</p>
+                <p class="text-sm text-gray-600 mb-2">Įveskite mokytojo PIN kodą:</p>
                 <div class="flex gap-2">
                     <input type="password" id="teacher-pin" class="border border-gray-300 px-3 py-2 rounded-lg text-sm" placeholder="PIN kodas">
-                    <button onclick="verifyTeacherPin()" class="bg-autumn-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-autumn-700">Prisijungti</button>
+                    <button type="button" onclick="verifyTeacherPin()" class="bg-autumn-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">Prisijungti</button>
                 </div>
             </div>
-
-            <div id="teacher-content" class="hidden overflow-y-auto flex-grow">
-                <table class="w-full text-left border-collapse text-sm">
-                    <thead>
-                        <tr class="bg-autumn-100 text-autumn-900 border-b border-autumn-200">
-                            <th class="p-3 font-bold">Mokinys</th>
-                            <th class="p-3 font-bold">Progresas</th>
-                            <th class="p-3 font-bold">Dabartinė sąlyga</th>
-                            <th class="p-3 font-bold">Bandymai</th>
-                            <th class="p-3 font-bold">Laikas (s)</th>
-                            <th class="p-3 font-bold">Taškai</th>
-                            <th class="p-3 font-bold">Būsena</th>
-                        </tr>
-                    </thead>
-                    <tbody id="students-table-body"></tbody>
-                </table>
+            <div id="teacher-content" class="hidden flex-col flex-grow overflow-hidden">
+                <div class="flex flex-wrap justify-between items-center mb-3 gap-2">
+                    <div class="flex flex-wrap items-center gap-3 text-xs text-gray-600">
+                        <div class="flex items-center gap-1.5">
+                            <label for="test-filter-select" class="font-bold text-gray-800">Testas:</label>
+                            <select id="test-filter-select" onchange="renderTeacherTable()" class="border border-gray-300 rounded-lg px-2.5 py-1.5 bg-white font-semibold text-gray-800">
+                                <option value="ALL">Visi darbai</option>
+                            </select>
+                        </div>
+                        <span><span class="inline-block w-3 h-3 bg-green-500 rounded-sm align-middle"></span> Teisingai</span>
+                        <span><span class="inline-block w-3 h-3 bg-blue-500 rounded-sm align-middle"></span> Užskaityta mokytojo</span>
+                        <span><span class="inline-block w-3 h-3 bg-red-500 rounded-sm align-middle"></span> Klaidingai</span>
+                        <span><span class="inline-block w-3 h-3 bg-gray-200 rounded-sm align-middle"></span> Neatsakyta</span>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="fetchTeacherData()" class="bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold border">🔄 Atnaujinti</button>
+                        <button type="button" onclick="printClassSummary()" class="bg-autumn-600 hover:bg-autumn-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">🖨️ Spausdinti klasės suvestinę</button>
+                        <button type="button" onclick="exportCSV()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold">📥 Excel (CSV)</button>
+                    </div>
+                </div>
+                <div class="overflow-y-auto flex-grow border rounded-xl">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-autumn-100 text-autumn-900 border-b">
+                                <th class="p-3">Mokinys</th>
+                                <th class="p-3">Testas / Var.</th>
+                                <th class="p-3">Užduočių eiga (1–30 klausimai)</th>
+                                <th class="p-3">Sugaištas laikas</th>
+                                <th class="p-3">Taškai</th>
+                                <th class="p-3">Pažymys</th>
+                                <th class="p-3">Būsena</th>
+                                <th class="p-3">Veiksmai</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-table-body"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
-    <footer class="text-center py-3 text-xs text-gray-400">
-        Matematikos interaktyvi pratybų pamoka &bull; 6 Klasė
-    </footer>
+    <!-- ATASKAITOS MODALAS (SU GALIMYBE UŽSKAITYTI ATSAKYMUS) -->
+    <div id="report-modal" class="fixed inset-0 bg-black/70 items-center justify-center z-50 p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 max-h-[92vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4 border-b pb-3 no-print">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">Mokinio darbo ir klaidų analizė</h3>
+                    <p class="text-xs text-gray-500">Galite paspausti „+ Užskaityti“ prie klaidingo atsakymo – taškai ir pažymys persiskaičiuos automatiškai.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" onclick="printReport('modal-report-body')" class="bg-autumn-600 hover:bg-autumn-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold">🖨️ Spausdinti / PDF</button>
+                    <button type="button" onclick="document.getElementById('report-modal').style.display='none'" class="text-gray-500 font-bold text-xl px-2">✕</button>
+                </div>
+            </div>
+            <div id="modal-report-body" class="overflow-y-auto flex-grow pr-2"></div>
+        </div>
+    </div>
 
-    <!-- JavaScript Logika -->
+    <footer class="text-center py-3 text-xs text-gray-400 no-print">Kontrolinis darbas Nr. 2 (K2) &bull; 6 Klasė</footer>
+
     <script>
+        const SUPABASE_URL = 'https://kyrudsbytvcyfxkmiaeb.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'sb_publishable_TpYnyAUh4LwuVH7i6IssUQ_Stw-6weq';
+        const TEST_SHORT_NAME = "K2: Sveikųjų ir dešimtainių sk. sudėtis ir atimtis";
+        const TEST_TITLE = "KONTROLINIS DARBAS NR. 2 (K2): Racionaliųjų (sveikųjų ir dešimtainių) skaičių sudėtis ir atimtis";
+        let supabaseClient = null;
+        try {
+            if (window.supabase) {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (e) {}
+
+        const VARIANTS_DATA = {
+            1: [
+                { id: 1, level: "Slenkstinis lygis", title: "1. Sudėkite:", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "1a", label: "a)", expr: "14 + (-23) =", type: "input", ans: -9, pts: 0.5, rule: "23 - 14 = 9, paliekame didesniojo ženklą (-9)." },
+                    { id: "1b", label: "b)", expr: "-12 + (+37) =", type: "input", ans: 25, pts: 0.5, rule: "37 - 12 = 25." },
+                    { id: "1c", label: "c)", expr: "-15 + (-6) =", type: "input", ans: -21, pts: 0.5, rule: "-(15 + 6) = -21." },
+                    { id: "1d", label: "d)", expr: "-8,5 + 10,2 =", type: "input", ans: 1.7, pts: 0.5, rule: "10,2 - 8,5 = 1,7." }
+                ]},
+                { id: 2, level: "Slenkstinis lygis", title: "2. Atimkite:", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "2a", label: "a)", expr: "25 - 18 =", type: "input", ans: 7, pts: 0.5, rule: "25 - 18 = 7." },
+                    { id: "2b", label: "b)", expr: "-11 - (-29) =", type: "input", ans: 18, pts: 0.5, rule: "-11 + 29 = 18." },
+                    { id: "2c", label: "c)", expr: "-30 - (+18) =", type: "input", ans: -48, pts: 0.5, rule: "-30 - 18 = -48." },
+                    { id: "2d", label: "d)", expr: "-45 - (-17) =", type: "input", ans: -28, pts: 0.5, rule: "-45 + 17 = -28." }
+                ]},
+                { id: 3, level: "Patenkinamas lygis", title: "3. Apskaičiuokite reiškinio reikšmę:", pointsText: "4 tšk. (po 1 tšk.)", items: [
+                    { id: "3a", label: "a)", expr: "12 - 50 + 23 =", type: "input", ans: -15, pts: 1, rule: "12 - 50 + 23 = -38 + 23 = -15." },
+                    { id: "3b", label: "b)", expr: "-15 - 27 - 19 =", type: "input", ans: -61, pts: 1, rule: "-(15 + 27 + 19) = -61." },
+                    { id: "3c", label: "c)", expr: "-37 + 20 - (-4) =", type: "input", ans: -13, pts: 1, rule: "-37 + 20 + 4 = -13." },
+                    { id: "3d", label: "d)", expr: "30 - (-15) - 28 =", type: "input", ans: 17, pts: 1, rule: "30 + 15 - 28 = 17." }
+                ]},
+                { id: 4, level: "Patenkinamas lygis", title: "4. Apskaičiuokite skaičių a ir b sumą (a + b), kai:", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "4a", label: "a)", expr: "a = 19, b = -53  →  a + b =", type: "input", ans: -34, pts: 0.5, rule: "19 - 53 = -34." },
+                    { id: "4b", label: "b)", expr: "a = -45, b = -47  →  a + b =", type: "input", ans: -92, pts: 0.5, rule: "-45 - 47 = -92." },
+                    { id: "4c", label: "c)", expr: "a = -8,9, b = 27,6  →  a + b =", type: "input", ans: 18.7, pts: 0.5, rule: "27,6 - 8,9 = 18,7." },
+                    { id: "4d", label: "d)", expr: "a = 2,1, b = -10,5  →  a + b =", type: "input", ans: -8.4, pts: 0.5, rule: "2,1 - 10,5 = -8,4." }
+                ]},
+                { id: 5, level: "Pagrindinis lygis", title: "5. Koks ženklas (< ar >) turėtų būti vietoj kvadratėlio?", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "5a", label: "a)", expr: "13 + 18 + (-13)  □  0", type: "compare", ans: ">", pts: 0.5, rule: "18 > 0." },
+                    { id: "5b", label: "b)", expr: "-13 + (-18) + 18  □  0", type: "compare", ans: "<", pts: 0.5, rule: "-13 < 0." },
+                    { id: "5c", label: "c)", expr: "18 - 13 + 18  □  0", type: "compare", ans: ">", pts: 0.5, rule: "23 > 0." },
+                    { id: "5d", label: "d)", expr: "-13 - 13 - 18  □  0", type: "compare", ans: "<", pts: 0.5, rule: "-44 < 0." }
+                ]},
+                { id: 6, level: "Pagrindinis lygis", title: "6. Apskaičiuokite skaičių m ir n skirtumą (m - n), kai:", pointsText: "4 tšk. (po 1 tšk.)", items: [
+                    { id: "6a", label: "a)", expr: "m = -14, n = 18  →  m - n =", type: "input", ans: -32, pts: 1, rule: "-14 - 18 = -32." },
+                    { id: "6b", label: "b)", expr: "m = 27, n = -39  →  m - n =", type: "input", ans: 66, pts: 1, rule: "27 + 39 = 66." },
+                    { id: "6c", label: "c)", expr: "m = -19,3, n = 17,5  →  m - n =", type: "input", ans: -36.8, pts: 1, rule: "-19,3 - 17,5 = -36,8." },
+                    { id: "6d", label: "d)", expr: "m = -12,4, n = -3,5  →  m - n =", type: "input", ans: -8.9, pts: 1, rule: "-12,4 + 3,5 = -8,9." }
+                ]},
+                { id: 7, level: "Aukštesnysis lygis", title: "7. Parinkite reiškinį (0,5 tšk.) ir apskaičiuokite jo reikšmę (0,5 tšk.):", pointsText: "2 tšk.", items: [
+                    { id: "7a_expr", label: "a) Reiškinys:", expr: "Prie skaičiaus -4 pridėtas skaičių -4 ir 20 skirtumas:", type: "select", options: ["-4 + (-4 - 20)", "-4 - (-4 + 20)", "-4 + (20 - (-4))", "-4 - (-4 - 20)"], ans: "-4 + (-4 - 20)", pts: 0.5, rule: "Skirtumas (-4 - 20) pridedamas prie -4." },
+                    { id: "7a_val", label: "a) Atsakymas:", expr: "Šio reiškinio reikšmė lygi:", type: "input", ans: -28, pts: 0.5, rule: "-4 + (-24) = -28." },
+                    { id: "7b_expr", label: "b) Reiškinys:", expr: "Iš skaičiaus 5 atimta skaičių 19 ir -26 suma:", type: "select", options: ["5 - (19 + (-26))", "5 + (19 - (-26))", "(19 + (-26)) - 5", "5 - 19 + (-26)"], ans: "5 - (19 + (-26))", pts: 0.5, rule: "Suma (19 + (-26)) atimama iš 5." },
+                    { id: "7b_val", label: "b) Atsakymas:", expr: "Šio reiškinio reikšmė lygi:", type: "input", ans: 12, pts: 0.5, rule: "5 - (-7) = 12." }
+                ]},
+                { id: 8, level: "Aukštesnysis lygis", title: "8. Raskite skaičių, kurį gautume:", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "8a", label: "a)", expr: "prie 17 pridėję jam priešingą skaičių, o po to atėmę 26:", type: "input", ans: -26, pts: 0.5, rule: "17 + (-17) - 26 = -26." },
+                    { id: "8b", label: "b)", expr: "iš -16 atėmę 15, o po to pridėję 11:", type: "input", ans: -20, pts: 0.5, rule: "-16 - 15 + 11 = -20." },
+                    { id: "8c", label: "c)", expr: "prie 0,9 pridėję -17,2, o po to atėmę -24:", type: "input", ans: 7.7, pts: 0.5, rule: "0,9 - 17,2 + 24 = 7,7." },
+                    { id: "8d", label: "d)", expr: "iš 4,5 atėmę 1,5, o po to pridėję -2,8:", type: "input", ans: 0.2, pts: 0.5, rule: "4,5 - 1,5 - 2,8 = 0,2." }
+                ]}
+            ],
+            2: [
+                { id: 1, level: "Slenkstinis lygis", title: "1. Sudėkite:", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "1a", label: "a)", expr: "15 + (-22) =", type: "input", ans: -7, pts: 0.5, rule: "15 - 22 = -7." },
+                    { id: "1b", label: "b)", expr: "-13 + (+36) =", type: "input", ans: 23, pts: 0.5, rule: "36 - 13 = 23." },
+                    { id: "1c", label: "c)", expr: "-14 + (-7) =", type: "input", ans: -21, pts: 0.5, rule: "-14 - 7 = -21." },
+                    { id: "1d", label: "d)", expr: "30 + (-39) =", type: "input", ans: -9, pts: 0.5, rule: "30 - 39 = -9." }
+                ]},
+                { id: 2, level: "Slenkstinis lygis", title: "2. Atimkite:", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "2a", label: "a)", expr: "22 - (+17) =", type: "input", ans: 5, pts: 0.5, rule: "22 - 17 = 5." },
+                    { id: "2b", label: "b)", expr: "-12 - (-28) =", type: "input", ans: 16, pts: 0.5, rule: "-12 + 28 = 16." },
+                    { id: "2c", label: "c)", expr: "-20 - (+17) =", type: "input", ans: -37, pts: 0.5, rule: "-20 - 17 = -37." },
+                    { id: "2d", label: "d)", expr: "-42 - (-19) =", type: "input", ans: -23, pts: 0.5, rule: "-42 + 19 = -23." }
+                ]},
+                { id: 3, level: "Patenkinamas lygis", title: "3. Apskaičiuokite reiškinio reikšmę:", pointsText: "4 tšk. (po 1 tšk.)", items: [
+                    { id: "3a", label: "a)", expr: "13 - 49 + 26 =", type: "input", ans: -10, pts: 1, rule: "-36 + 26 = -10." },
+                    { id: "3b", label: "b)", expr: "-18 - 25 - 17 =", type: "input", ans: -60, pts: 1, rule: "-(18 + 25 + 17) = -60." },
+                    { id: "3c", label: "c)", expr: "39 + 18 - (-17) =", type: "input", ans: 74, pts: 1, rule: "39 + 18 + 17 = 74." },
+                    { id: "3d", label: "d)", expr: "29 - (-16) - 30 =", type: "input", ans: 15, pts: 1, rule: "29 + 16 - 30 = 15." }
+                ]},
+                { id: 4, level: "Patenkinamas lygis", title: "4. Apskaičiuokite skaičių a ir b sumą (a + b), kai:", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "4a", label: "a)", expr: "a = 17, b = -51  →  a + b =", type: "input", ans: -34, pts: 0.5, rule: "17 - 51 = -34." },
+                    { id: "4b", label: "b)", expr: "a = -18, b = -43  →  a + b =", type: "input", ans: -61, pts: 0.5, rule: "-18 - 43 = -61." },
+                    { id: "4c", label: "c)", expr: "a = -7,7, b = 16  →  a + b =", type: "input", ans: 8.3, pts: 0.5, rule: "16 - 7,7 = 8,3." },
+                    { id: "4d", label: "d)", expr: "a = 3,4, b = -9,2  →  a + b =", type: "input", ans: -5.8, pts: 0.5, rule: "3,4 - 9,2 = -5,8." }
+                ]},
+                { id: 5, level: "Pagrindinis lygis", title: "5. Koks ženklas (< ar >) turėtų būti vietoj kvadratėlio?", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "5a", label: "a)", expr: "12 + (+19) + (-12)  □  0", type: "compare", ans: ">", pts: 0.5, rule: "19 > 0." },
+                    { id: "5b", label: "b)", expr: "-12 + (-19) + 19  □  0", type: "compare", ans: "<", pts: 0.5, rule: "-12 < 0." },
+                    { id: "5c", label: "c)", expr: "19 - 12 + 19  □  0", type: "compare", ans: ">", pts: 0.5, rule: "26 > 0." },
+                    { id: "5d", label: "d)", expr: "-12 - 12 - 19  □  0", type: "compare", ans: "<", pts: 0.5, rule: "-43 < 0." }
+                ]},
+                { id: 6, level: "Pagrindinis lygis", title: "6. Apskaičiuokite skaičių m ir n skirtumą (m - n), kai:", pointsText: "4 tšk. (po 1 tšk.)", items: [
+                    { id: "6a", label: "a)", expr: "m = -16, n = 19  →  m - n =", type: "input", ans: -35, pts: 1, rule: "-16 - 19 = -35." },
+                    { id: "6b", label: "b)", expr: "m = 25, n = -41  →  m - n =", type: "input", ans: 66, pts: 1, rule: "25 + 41 = 66." },
+                    { id: "6c", label: "c)", expr: "m = -18,2, n = 16,8  →  m - n =", type: "input", ans: -35, pts: 1, rule: "-18,2 - 16,8 = -35." },
+                    { id: "6d", label: "d)", expr: "m = -1,6, n = -0,75  →  m - n =", type: "input", ans: -0.85, pts: 1, rule: "-1,60 + 0,75 = -0,85." }
+                ]},
+                { id: 7, level: "Aukštesnysis lygis", title: "7. Parinkite reiškinį (0,5 tšk.) ir apskaičiuokite jo reikšmę (0,5 tšk.):", pointsText: "2 tšk.", items: [
+                    { id: "7a_expr", label: "a) Reiškinys:", expr: "Prie skaičiaus -3 pridėtas skaičių -16 ir 21 skirtumas:", type: "select", options: ["-3 + (-16 - 21)", "-3 - (-16 + 21)", "-3 + (21 - (-16))", "-3 - (-16 - 21)"], ans: "-3 + (-16 - 21)", pts: 0.5, rule: "Skirtumas (-16 - 21) pridedamas prie -3." },
+                    { id: "7a_val", label: "a) Atsakymas:", expr: "Šio reiškinio reikšmė lygi:", type: "input", ans: -40, pts: 0.5, rule: "-3 + (-37) = -40." },
+                    { id: "7b_expr", label: "b) Reiškinys:", expr: "Iš skaičiaus 7 atimta skaičių 17 ir -28 suma:", type: "select", options: ["7 - (17 + (-28))", "7 + (17 - (-28))", "(17 + (-28)) - 7", "7 - 17 + (-28)"], ans: "7 - (17 + (-28))", pts: 0.5, rule: "Suma (17 + (-28)) atimama iš 7." },
+                    { id: "7b_val", label: "b) Atsakymas:", expr: "Šio reiškinio reikšmė lygi:", type: "input", ans: 18, pts: 0.5, rule: "7 - (-11) = 18." }
+                ]},
+                { id: 8, level: "Aukštesnysis lygis", title: "8. Raskite skaičių, kurį gautume:", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "8a", label: "a)", expr: "prie 15 pridėję jam priešingą skaičių, o po to atėmę 24:", type: "input", ans: -24, pts: 0.5, rule: "15 + (-15) - 24 = -24." },
+                    { id: "8b", label: "b)", expr: "iš -14 atėmę 13, o po to pridėję 12:", type: "input", ans: -15, pts: 0.5, rule: "-14 - 13 + 12 = -15." },
+                    { id: "8c", label: "c)", expr: "prie 0,8 pridėję -18,1, o po to atėmę -26:", type: "input", ans: 8.7, pts: 0.5, rule: "0,8 - 18,1 + 26 = 8,7." },
+                    { id: "8d", label: "d)", expr: "iš 3,5 atėmę 1,2, o po to pridėję -2,5:", type: "input", ans: -0.2, pts: 0.5, rule: "3,5 - 1,2 - 2,5 = -0,2." }
+                ]}
+            ],
+            3: [
+                { id: 1, level: "Slenkstinis lygis", title: "1. Sudėkite:", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "1a", label: "a)", expr: "16 + (-25) =", type: "input", ans: -9, pts: 0.5, rule: "16 - 25 = -9." },
+                    { id: "1b", label: "b)", expr: "-14 + (+39) =", type: "input", ans: 25, pts: 0.5, rule: "39 - 14 = 25." },
+                    { id: "1c", label: "c)", expr: "-17 + (-8) =", type: "input", ans: -25, pts: 0.5, rule: "-17 - 8 = -25." },
+                    { id: "1d", label: "d)", expr: "-7,4 + 11,2 =", type: "input", ans: 3.8, pts: 0.5, rule: "11,2 - 7,4 = 3,8." }
+                ]},
+                { id: 2, level: "Slenkstinis lygis", title: "2. Atimkite:", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "2a", label: "a)", expr: "27 - 19 =", type: "input", ans: 8, pts: 0.5, rule: "27 - 19 = 8." },
+                    { id: "2b", label: "b)", expr: "-13 - (-31) =", type: "input", ans: 18, pts: 0.5, rule: "-13 + 31 = 18." },
+                    { id: "2c", label: "c)", expr: "-40 - (+16) =", type: "input", ans: -56, pts: 0.5, rule: "-40 - 16 = -56." },
+                    { id: "2d", label: "d)", expr: "-48 - (-19) =", type: "input", ans: -29, pts: 0.5, rule: "-48 + 19 = -29." }
+                ]},
+                { id: 3, level: "Patenkinamas lygis", title: "3. Apskaičiuokite reiškinio reikšmę:", pointsText: "4 tšk. (po 1 tšk.)", items: [
+                    { id: "3a", label: "a)", expr: "14 - 52 + 25 =", type: "input", ans: -13, pts: 1, rule: "-38 + 25 = -13." },
+                    { id: "3b", label: "b)", expr: "-16 - 28 - 15 =", type: "input", ans: -59, pts: 1, rule: "-(16 + 28 + 15) = -59." },
+                    { id: "3c", label: "c)", expr: "-35 + 18 - (-6) =", type: "input", ans: -11, pts: 1, rule: "-35 + 18 + 6 = -11." },
+                    { id: "3d", label: "d)", expr: "32 - (-14) - 29 =", type: "input", ans: 17, pts: 1, rule: "32 + 14 - 29 = 17." }
+                ]},
+                { id: 4, level: "Patenkinamas lygis", title: "4. Apskaičiuokite skaičių a ir b sumą (a + b), kai:", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "4a", label: "a)", expr: "a = 18, b = -54  →  a + b =", type: "input", ans: -36, pts: 0.5, rule: "18 - 54 = -36." },
+                    { id: "4b", label: "b)", expr: "a = -42, b = -49  →  a + b =", type: "input", ans: -91, pts: 0.5, rule: "-42 - 49 = -91." },
+                    { id: "4c", label: "c)", expr: "a = -7,8, b = 26,5  →  a + b =", type: "input", ans: 18.7, pts: 0.5, rule: "26,5 - 7,8 = 18,7." },
+                    { id: "4d", label: "d)", expr: "a = 3,2, b = -11,6  →  a + b =", type: "input", ans: -8.4, pts: 0.5, rule: "3,2 - 11,6 = -8,4." }
+                ]},
+                { id: 5, level: "Pagrindinis lygis", title: "5. Koks ženklas (< ar >) turėtų būti vietoj kvadratėlio?", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "5a", label: "a)", expr: "14 + 17 + (-14)  □  0", type: "compare", ans: ">", pts: 0.5, rule: "17 > 0." },
+                    { id: "5b", label: "b)", expr: "-14 + (-17) + 17  □  0", type: "compare", ans: "<", pts: 0.5, rule: "-14 < 0." },
+                    { id: "5c", label: "c)", expr: "17 - 14 + 17  □  0", type: "compare", ans: ">", pts: 0.5, rule: "20 > 0." },
+                    { id: "5d", label: "d)", expr: "-14 - 14 - 17  □  0", type: "compare", ans: "<", pts: 0.5, rule: "-45 < 0." }
+                ]},
+                { id: 6, level: "Pagrindinis lygis", title: "6. Apskaičiuokite skaičių m ir n skirtumą (m - n), kai:", pointsText: "4 tšk. (po 1 tšk.)", items: [
+                    { id: "6a", label: "a)", expr: "m = -15, n = 17  →  m - n =", type: "input", ans: -32, pts: 1, rule: "-15 - 17 = -32." },
+                    { id: "6b", label: "b)", expr: "m = 28, n = -37  →  m - n =", type: "input", ans: 65, pts: 1, rule: "28 + 37 = 65." },
+                    { id: "6c", label: "c)", expr: "m = -18,4, n = 16,2  →  m - n =", type: "input", ans: -34.6, pts: 1, rule: "-18,4 - 16,2 = -34,6." },
+                    { id: "6d", label: "d)", expr: "m = -11,5, n = -2,8  →  m - n =", type: "input", ans: -8.7, pts: 1, rule: "-11,5 + 2,8 = -8,7." }
+                ]},
+                { id: 7, level: "Aukštesnysis lygis", title: "7. Parinkite reiškinį (0,5 tšk.) ir apskaičiuokite jo reikšmę (0,5 tšk.):", pointsText: "2 tšk.", items: [
+                    { id: "7a_expr", label: "a) Reiškinys:", expr: "Prie skaičiaus -5 pridėtas skaičių -6 ir 18 skirtumas:", type: "select", options: ["-5 + (-6 - 18)", "-5 - (-6 + 18)", "-5 + (18 - (-6))", "-5 - (-6 - 18)"], ans: "-5 + (-6 - 18)", pts: 0.5, rule: "Skirtumas (-6 - 18) pridedamas prie -5." },
+                    { id: "7a_val", label: "a) Atsakymas:", expr: "Šio reiškinio reikšmė lygi:", type: "input", ans: -29, pts: 0.5, rule: "-5 + (-24) = -29." },
+                    { id: "7b_expr", label: "b) Reiškinys:", expr: "Iš skaičiaus 6 atimta skaičių 16 ir -25 suma:", type: "select", options: ["6 - (16 + (-25))", "6 + (16 - (-25))", "(16 + (-25)) - 6", "6 - 16 + (-25)"], ans: "6 - (16 + (-25))", pts: 0.5, rule: "Suma (16 + (-25)) atimama iš 6." },
+                    { id: "7b_val", label: "b) Atsakymas:", expr: "Šio reiškinio reikšmė lygi:", type: "input", ans: 15, pts: 0.5, rule: "6 - (-9) = 15." }
+                ]},
+                { id: 8, level: "Aukštesnysis lygis", title: "8. Raskite skaičių, kurį gautume:", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "8a", label: "a)", expr: "prie 19 pridėję jam priešingą skaičių, o po to atėmę 23:", type: "input", ans: -23, pts: 0.5, rule: "19 + (-19) - 23 = -23." },
+                    { id: "8b", label: "b)", expr: "iš -18 atėmę 14, o po to pridėję 12:", type: "input", ans: -20, pts: 0.5, rule: "-18 - 14 + 12 = -20." },
+                    { id: "8c", label: "c)", expr: "prie 0,7 pridėję -16,4, o po to atėmę -25:", type: "input", ans: 9.3, pts: 0.5, rule: "0,7 - 16,4 + 25 = 9,3." },
+                    { id: "8d", label: "d)", expr: "iš 5,5 atėmę 1,8, o po to pridėję -3,4:", type: "input", ans: 0.3, pts: 0.5, rule: "5,5 - 1,8 - 3,4 = 0,3." }
+                ]}
+            ],
+            4: [
+                { id: 1, level: "Slenkstinis lygis", title: "1. Sudėkite:", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "1a", label: "a)", expr: "18 + (-27) =", type: "input", ans: -9, pts: 0.5, rule: "18 - 27 = -9." },
+                    { id: "1b", label: "b)", expr: "-15 + (+38) =", type: "input", ans: 23, pts: 0.5, rule: "38 - 15 = 23." },
+                    { id: "1c", label: "c)", expr: "-16 + (-9) =", type: "input", ans: -25, pts: 0.5, rule: "-16 - 9 = -25." },
+                    { id: "1d", label: "d)", expr: "40 + (-48) =", type: "input", ans: -8, pts: 0.5, rule: "40 - 48 = -8." }
+                ]},
+                { id: 2, level: "Slenkstinis lygis", title: "2. Atimkite:", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "2a", label: "a)", expr: "24 - (+18) =", type: "input", ans: 6, pts: 0.5, rule: "24 - 18 = 6." },
+                    { id: "2b", label: "b)", expr: "-14 - (-29) =", type: "input", ans: 15, pts: 0.5, rule: "-14 + 29 = 15." },
+                    { id: "2c", label: "c)", expr: "-30 - (+15) =", type: "input", ans: -45, pts: 0.5, rule: "-30 - 15 = -45." },
+                    { id: "2d", label: "d)", expr: "-46 - (-18) =", type: "input", ans: -28, pts: 0.5, rule: "-46 + 18 = -28." }
+                ]},
+                { id: 3, level: "Patenkinamas lygis", title: "3. Apskaičiuokite reiškinio reikšmę:", pointsText: "4 tšk. (po 1 tšk.)", items: [
+                    { id: "3a", label: "a)", expr: "15 - 51 + 24 =", type: "input", ans: -12, pts: 1, rule: "-36 + 24 = -12." },
+                    { id: "3b", label: "b)", expr: "-19 - 24 - 16 =", type: "input", ans: -59, pts: 1, rule: "-(19 + 24 + 16) = -59." },
+                    { id: "3c", label: "c)", expr: "38 + 16 - (-15) =", type: "input", ans: 69, pts: 1, rule: "38 + 16 + 15 = 69." },
+                    { id: "3d", label: "d)", expr: "28 - (-17) - 31 =", type: "input", ans: 14, pts: 1, rule: "28 + 17 - 31 = 14." }
+                ]},
+                { id: 4, level: "Patenkinamas lygis", title: "4. Apskaičiuokite skaičių a ir b sumą (a + b), kai:", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "4a", label: "a)", expr: "a = 16, b = -52  →  a + b =", type: "input", ans: -36, pts: 0.5, rule: "16 - 52 = -36." },
+                    { id: "4b", label: "b)", expr: "a = -19, b = -44  →  a + b =", type: "input", ans: -63, pts: 0.5, rule: "-19 - 44 = -63." },
+                    { id: "4c", label: "c)", expr: "a = -6,8, b = 15  →  a + b =", type: "input", ans: 8.2, pts: 0.5, rule: "15 - 6,8 = 8,2." },
+                    { id: "4d", label: "d)", expr: "a = 4,3, b = -10,1  →  a + b =", type: "input", ans: -5.8, pts: 0.5, rule: "4,3 - 10,1 = -5,8." }
+                ]},
+                { id: 5, level: "Pagrindinis lygis", title: "5. Koks ženklas (< ar >) turėtų būti vietoj kvadratėlio?", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "5a", label: "a)", expr: "11 + (+18) + (-11)  □  0", type: "compare", ans: ">", pts: 0.5, rule: "18 > 0." },
+                    { id: "5b", label: "b)", expr: "-11 + (-18) + 18  □  0", type: "compare", ans: "<", pts: 0.5, rule: "-11 < 0." },
+                    { id: "5c", label: "c)", expr: "18 - 11 + 18  □  0", type: "compare", ans: ">", pts: 0.5, rule: "25 > 0." },
+                    { id: "5d", label: "d)", expr: "-11 - 11 - 18  □  0", type: "compare", ans: "<", pts: 0.5, rule: "-40 < 0." }
+                ]},
+                { id: 6, level: "Pagrindinis lygis", title: "6. Apskaičiuokite skaičių m ir n skirtumą (m - n), kai:", pointsText: "4 tšk. (po 1 tšk.)", items: [
+                    { id: "6a", label: "a)", expr: "m = -17, n = 18  →  m - n =", type: "input", ans: -35, pts: 1, rule: "-17 - 18 = -35." },
+                    { id: "6b", label: "b)", expr: "m = 26, n = -42  →  m - n =", type: "input", ans: 68, pts: 1, rule: "26 + 42 = 68." },
+                    { id: "6c", label: "c)", expr: "m = -17,3, n = 15,7  →  m - n =", type: "input", ans: -33, pts: 1, rule: "-17,3 - 15,7 = -33." },
+                    { id: "6d", label: "d)", expr: "m = -1,8, n = -0,65  →  m - n =", type: "input", ans: -1.15, pts: 1, rule: "-1,80 + 0,65 = -1,15." }
+                ]},
+                { id: 7, level: "Aukštesnysis lygis", title: "7. Parinkite reiškinį (0,5 tšk.) ir apskaičiuokite jo reikšmę (0,5 tšk.):", pointsText: "2 tšk.", items: [
+                    { id: "7a_expr", label: "a) Reiškinys:", expr: "Prie skaičiaus -2 pridėtas skaičių -15 ir 22 skirtumas:", type: "select", options: ["-2 + (-15 - 22)", "-2 - (-15 + 22)", "-2 + (22 - (-15))", "-2 - (-15 - 22)"], ans: "-2 + (-15 - 22)", pts: 0.5, rule: "Skirtumas (-15 - 22) pridedamas prie -2." },
+                    { id: "7a_val", label: "a) Atsakymas:", expr: "Šio reiškinio reikšmė lygi:", type: "input", ans: -39, pts: 0.5, rule: "-2 + (-37) = -39." },
+                    { id: "7b_expr", label: "b) Reiškinys:", expr: "Iš skaičiaus 8 atimta skaičių 15 ir -27 suma:", type: "select", options: ["8 - (15 + (-27))", "8 + (15 - (-27))", "(15 + (-27)) - 8", "8 - 15 + (-27)"], ans: "8 - (15 + (-27))", pts: 0.5, rule: "Suma (15 + (-27)) atimama iš 8." },
+                    { id: "7b_val", label: "b) Atsakymas:", expr: "Šio reiškinio reikšmė lygi:", type: "input", ans: 20, pts: 0.5, rule: "8 - (-12) = 20." }
+                ]},
+                { id: 8, level: "Aukštesnysis lygis", title: "8. Raskite skaičių, kurį gautume:", pointsText: "2 tšk. (po 0,5 tšk.)", items: [
+                    { id: "8a", label: "a)", expr: "prie 14 pridėję jam priešingą skaičių, o po to atėmę 21:", type: "input", ans: -21, pts: 0.5, rule: "14 + (-14) - 21 = -21." },
+                    { id: "8b", label: "b)", expr: "iš -15 atėmę 12, o po to pridėję 13:", type: "input", ans: -14, pts: 0.5, rule: "-15 - 12 + 13 = -14." },
+                    { id: "8c", label: "c)", expr: "prie 0,6 pridėję -19,2, o po to atėmę -28:", type: "input", ans: 9.4, pts: 0.5, rule: "0,6 - 19,2 + 28 = 9,4." },
+                    { id: "8d", label: "d)", expr: "iš 4,6 atėmę 1,4, o po to pridėję -3,5:", type: "input", ans: -0.3, pts: 0.5, rule: "4,6 - 1,4 - 3,5 = -0,3." }
+                ]}
+            ]
+        };
+
         let studentName = "";
         let studentId = "st_" + Math.random().toString(36).substr(2, 9);
-        let score = 0;
+        let variantNum = 1;
+        let programType = "BP";
+        let currentTasks = [];
         let currentTaskIndex = 0;
-        let currentAttempts = 0;
-        let taskStartTime = Date.now();
-        let tasks = [];
-        let currentTask = null;
+        let userAnswers = {};
+        let tabLeaveCount = 0;
+        let totalAllowedSeconds = 2400;
+        let timeLeftSeconds = 2400;
+        let timerInterval = null;
+        let cooldownInterval = null;
         let isCooldownActive = false;
+        let isFinished = false;
+        let cachedSessions = [];
+        let activeReportSessionIdx = null;
 
-        function handleLogin(event) {
-            event.preventDefault();
-            const inputVal = document.getElementById("student-name-input").value.trim();
-            if (!inputVal) return;
-            
-            studentName = inputVal;
-            document.getElementById("display-student-name").textContent = studentName;
-            
-            // Garantuotai uždarome modalinį langą
-            document.getElementById("login-modal").classList.add("hidden");
-            
-            try {
-                generateTasks();
-                loadTask();
-            } catch (err) {
-                console.error("Klaida generuojant užduotis:", err);
-                alert("Įvyko klaida paleidžiant užduotis. Patikrinkite naršyklės konsolę.");
+        function formatDuration(sec) {
+            if (!sec || sec < 0) sec = 0;
+            const m = Math.floor(sec / 60);
+            const s = sec % 60;
+            return m + " min " + String(s).padStart(2, '0') + " s";
+        }
+
+        function startExam() {
+            const nameVal = document.getElementById("student-name-input").value.trim();
+            const codeVal = document.getElementById("lesson-code-input").value.replace(/\s+/g, '').toUpperCase();
+            const errEl = document.getElementById("login-error");
+
+            if (!nameVal) {
+                errEl.textContent = "Įveskite savo vardą ir pavardę!";
+                errEl.classList.remove("hidden");
+                return;
             }
-            
-            syncToSupabase("sprendžia");
-        }
-
-        function randInt(min, max, avoidZero = true) {
-            let res = 0;
-            while (res === 0 && avoidZero) {
-                res = Math.floor(Math.random() * (max - min + 1)) + min;
-            }
-            return avoidZero ? res : Math.floor(Math.random() * (max - min + 1)) + min;
-        }
-
-        function generateTasks() {
-            tasks = [];
-
-            // 1–5 UŽDUOTYS: Apšilimas (1 veiksmas)
-            let a1 = randInt(5, 40), b1 = randInt(5, 40);
-            tasks.push({ type: "mcq", category: "Apšilimas (1 veiksmas)", text: `Apskaičiuokite: −${a1} + ${b1}`, answer: -a1 + b1, rule: "Sudėdami skirtingų ženklų skaičius, iš didesnio modulio atimame mažesnį ir paliekame didesniojo skaičiaus ženklą." });
-
-            let a2 = randInt(5, 40), b2 = randInt(5, 40);
-            tasks.push({ type: "mcq", category: "Apšilimas (1 veiksmas)", text: `Apskaičiuokite: −${a2} − ${b2}`, answer: -a2 - b2, rule: "Sudėdami du neigiamus skaičius, jų modulius sudedame ir parašome minuso ženklą." });
-
-            let a3 = randInt(10, 50), b3 = randInt(5, 40);
-            tasks.push({ type: "mcq", category: "Apšilimas (1 veiksmas)", text: `Apskaičiuokite: ${a3} − (−${b3})`, answer: a3 + b3, rule: "Du minusai šalia virsta pliusu: a − (−b) = a + b." });
-
-            let a4 = randInt(10, 50), b4 = randInt(5, 40);
-            tasks.push({ type: "mcq", category: "Apšilimas (1 veiksmas)", text: `Apskaičiuokite: −${a4} − (−${b4})`, answer: -a4 + b4, rule: "Minusas prieš skliaustus pakeičia ženklą: −a − (−b) = −a + b." });
-
-            let a5 = randInt(10, 40), b5 = randInt(10, 40);
-            tasks.push({ type: "mcq", category: "Apšilimas (1 veiksmas)", text: `Apskaičiuokite: −${a5} + (−${b5})`, answer: -a5 - b5, rule: "Pliusas ir minusas šalia virsta minusu: −a + (−b) = −a − b." });
-
-            // 6–12 UŽDUOTYS: Standartas (2 veiksmai)
-            let a6 = randInt(10, 40), b6 = randInt(10, 50), c6 = randInt(10, 40);
-            tasks.push({ type: "input", category: "Standartas (2 veiksmai)", text: `Apskaičiuokite: −${a6} + ${b6} − ${c6}`, answer: -a6 + b6 - c6, rule: "Veiksmus atlikite iš kairės į dešinę pagal eilės tvarką." });
-
-            let a7 = randInt(10, 40), b7 = randInt(10, 40), c7 = randInt(10, 40);
-            tasks.push({ type: "input", category: "Standartas (2 veiksmai)", text: `Apskaičiuokite: −${a7} − (−${b7}) + (−${c7})`, answer: -a7 + b7 - c7, rule: "Pirmiausia supaprastinkite ženklus: −(−b) = +b, o +(−c) = −c." });
-
-            let tStart = randInt(-15, -2), tDrop = randInt(3, 10), tRise = randInt(5, 15);
-            tasks.push({ type: "input", category: "Tekstinis uždavinys", text: `Lauke ryte temperatūra buvo ${tStart} °C. Iki pietų ji nukrito ${tDrop} °C, o iki vakaro pakilo ${tRise} °C. Kokia temperatūra vakare (°C)?`, answer: tStart - tDrop + tRise, rule: "Temperatūros kritimas reiškia atimtį, o pakilimas – sudėtį." });
-
-            let nStart = randInt(-40, -10), nDown = randInt(5, 20), nUp = randInt(10, 30);
-            tasks.push({ type: "input", category: "Tekstinis uždavinys", text: `Naro pradinė padėtis žemiau jūros lygio yra ${nStart} m. Jis nusileido dar ${nDown} m gilyn, o po to pakilo ${nUp} m aukštyn. Kokia dabar naro padėtis metrais?`, answer: nStart - nDown + nUp, rule: "Nusileidimas gilyn atima metrus, o pakilimas aukštyn – prideda." });
-
-            let a10 = randInt(15, 60), b10 = randInt(20, 60), c10 = randInt(10, 40);
-            tasks.push({ type: "input", category: "Standartas (2 veiksmai)", text: `Apskaičiuokite: ${a10} − ${b10} − (−${c10})`, answer: a10 - b10 + c10, rule: "Minus minusas duoda pliusą." });
-
-            let a11 = randInt(10, 30), b11 = randInt(10, 30), c11 = randInt(10, 30);
-            tasks.push({ type: "input", category: "Standartas (2 veiksmai)", text: `Apskaičiuokite: −${a11} − ${b11} − ${c11}`, answer: -a11 - b11 - c11, rule: "Visi trys neigiami – sudėkite modulius ir parašykite minusą." });
-
-            let a12 = randInt(10, 50), b12 = randInt(15, 40), c12 = randInt(10, 30);
-            tasks.push({ type: "input", category: "Standartas (2 veiksmai)", text: `Apskaičiuokite: ${a12} + (−${b12}) − (−${c12})`, answer: a12 - b12 + c12, rule: "Pakeiskite dvigubus ženklus." });
-
-            // 13–20 UŽDUOTYS: Iššūkis (Skliaustai)
-            let a13 = randInt(10, 50), b13 = randInt(5, 30), c13 = randInt(10, 40);
-            tasks.push({ type: "input", category: "Iššūkis (Skliaustai)", text: `Apskaičiuokite: ${a13} − (${b13} − ${c13})`, answer: a13 - (b13 - c13), rule: "Pirmiausia atlikite veiksmą skliaustuose." });
-
-            let a14 = randInt(5, 25), b14 = randInt(30, 60), c14 = randInt(10, 40);
-            tasks.push({ type: "input", category: "Iššūkis (Skliaustai)", text: `Apskaičiuokite: −(${a14} − ${b14}) − ${c14}`, answer: -(a14 - b14) - c14, rule: "Apskaičiuokite skliaustų reikšmę." });
-
-            let a15 = randInt(10, 40), b15 = randInt(15, 40), c15 = randInt(5, 30), d15 = randInt(10, 30);
-            tasks.push({ type: "input", category: "Iššūkis (Skliaustai)", text: `Apskaičiuokite: ${a15} + (−${b15} + ${c15}) − ${d15}`, answer: a15 + (-b15 + c15) - d15, rule: "Iš pradžių suskaičiuokite reiškinį skliaustuose." });
-
-            let bankStart = randInt(-80, -20), bankIn = randInt(50, 120), bankOut = randInt(30, 70);
-            tasks.push({ type: "input", category: "Kontekstinis (Finansai)", text: `Banko sąskaitoje buvo ${bankStart} € skola. Į sąskaitą pervesta ${bankIn} €, o po to atskaičiuotas ${bankOut} € mokestis. Koks dabar sąskaitos likutis (€)?`, answer: bankStart + bankIn - bankOut, rule: "Skola yra neigiamas skaičius." });
-
-            let a17 = randInt(10, 30), b17 = randInt(10, 30), c17 = randInt(5, 25), d17 = randInt(10, 35);
-            tasks.push({ type: "input", category: "Iššūkis (Skliaustai)", text: `Apskaičiuokite: −(${a17} + ${b17}) + (${c17} − ${d17})`, answer: -(a17 + b17) + (c17 - d17), rule: "Apskaičiuokite abiejų skliaustų reikšmes atskirai." });
-
-            let planeAlt = randInt(300, 800), subDepth = randInt(-150, -50), altDrop = randInt(100, 200);
-            tasks.push({ type: "input", category: "Kontekstinis (Judėjimas)", text: `Lėktuvas skrieja ${planeAlt} m aukštyje, o povandeninis laivas yra ${subDepth} m gylyje. Lėktuvas nusileido ${altDrop} m žemyn. Koks dabar atstumas metrais tarp lėktuvo ir laivo?`, answer: (planeAlt - altDrop) - subDepth, rule: "Atstumas apskaičiuojamas iš viršutinio aukščio atimant apatinio padėtį." });
-
-            let a19 = randInt(10, 40), b19 = randInt(20, 50), c19 = randInt(5, 30);
-            tasks.push({ type: "input", category: "Iššūkis (Skliaustai)", text: `Apskaičiuokite: −${a19} − (${b19} + (−${c19}))`, answer: -a19 - (b19 - c19), rule: "Skliaustuose b + (−c) yra b − c." });
-
-            let a20 = randInt(10, 30), b20 = randInt(20, 50), c20 = randInt(5, 20), d20 = randInt(20, 40);
-            tasks.push({ type: "input", category: "Didysis iššūkis", text: `Apskaičiuokite: (${a20} − ${b20}) − (${c20} − ${d20})`, answer: (a20 - b20) - (c20 - d20), rule: "Apskaičiuokite pirmojo ir antrojo skliaustų rezultatus." });
-        }
-
-        function loadTask() {
-            if (currentTaskIndex >= tasks.length) {
-                showFinishScreen();
+            if (codeVal !== "K2" && codeVal !== "K2P") {
+                errEl.textContent = "Neteisingas pamokos kodas! Pasiteiraukite mokytojo.";
+                errEl.classList.remove("hidden");
                 return;
             }
 
-            currentTask = tasks[currentTaskIndex];
-            currentAttempts = 0;
-            taskStartTime = Date.now();
+            errEl.classList.add("hidden");
+            studentName = nameVal;
+            variantNum = Math.floor(Math.random() * 4) + 1;
+            programType = (codeVal === "K2P") ? "DEP" : "BP";
 
-            document.getElementById("current-task-num").textContent = currentTaskIndex + 1;
-            document.getElementById("task-category-label").textContent = currentTask.category;
-            document.getElementById("task-text").textContent = currentTask.text;
-            document.getElementById("progress-bar").style.width = `${((currentTaskIndex + 1) / tasks.length) * 100}%`;
-            document.getElementById("feedback-box").classList.add("hidden");
+            document.getElementById("login-modal").style.display = "none";
+            document.getElementById("display-student-name").textContent = studentName;
+            document.getElementById("display-variant").textContent = variantNum + " variantas";
 
-            const container = document.getElementById("answers-container");
-            container.innerHTML = "";
-
-            if (currentTask.type === "mcq") {
-                renderMCQ(container, currentTask.answer);
+            if (programType === "DEP") {
+                totalAllowedSeconds = 3000;
+                timeLeftSeconds = 3000;
+                document.getElementById("cheat-sheet-btn").classList.remove("hidden");
             } else {
-                renderInput(container);
+                totalAllowedSeconds = 2400;
+                timeLeftSeconds = 2400;
             }
 
-            startCooldown(3);
+            currentTasks = JSON.parse(JSON.stringify(VARIANTS_DATA[variantNum]));
+            renderCurrentTask();
+            startTimer();
+            document.addEventListener("visibilitychange", () => {
+                if (document.hidden && !isFinished) {
+                    tabLeaveCount++;
+                    syncToSupabase("sprendžia");
+                }
+            });
             syncToSupabase("sprendžia");
         }
 
-        function renderMCQ(container, correctAnswer) {
-            let options = [correctAnswer];
-            while (options.length < 4) {
-                let offset = randInt(-10, 10);
-                let wrongAns = correctAnswer + offset;
-                if (!options.includes(wrongAns)) {
-                    options.push(wrongAns);
-                }
-            }
-            options.sort(() => Math.random() - 0.5);
-
-            let grid = document.createElement("div");
-            grid.className = "grid grid-cols-2 gap-3.5";
-
-            options.forEach(opt => {
-                let btn = document.createElement("button");
-                btn.className = "answer-btn w-full py-3.5 px-4 bg-white border-2 border-autumn-200 hover:border-autumn-500 rounded-xl text-xl font-bold text-gray-800 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed";
-                btn.textContent = opt;
-                btn.onclick = () => checkAnswer(opt, btn);
-                grid.appendChild(btn);
-            });
-            container.appendChild(grid);
+        function toggleCheatSheet() {
+            document.getElementById("cheat-sheet-panel").classList.toggle("hidden");
         }
 
-        function renderInput(container) {
-            let wrapper = document.createElement("form");
-            wrapper.className = "flex flex-col sm:flex-row gap-3";
-            wrapper.onsubmit = (e) => {
-                e.preventDefault();
-                const val = document.getElementById("user-answer-input").value.trim();
-                if (val !== "" && !isCooldownActive) {
-                    checkAnswer(parseInt(val, 10), document.getElementById("submit-input-btn"));
-                }
-            };
-
-            wrapper.innerHTML = `
-                <input type="number" id="user-answer-input" step="1" required placeholder="Įveskite sveikąjį skaičių" 
-                       class="flex-grow px-4 py-3.5 border-2 border-autumn-300 rounded-xl text-xl font-bold text-gray-800 focus:outline-none focus:border-autumn-600 disabled:bg-gray-100 disabled:cursor-not-allowed">
-                <button type="submit" id="submit-input-btn" 
-                        class="answer-btn bg-autumn-600 hover:bg-autumn-700 text-white font-bold px-8 py-3.5 rounded-xl text-lg transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
-                    Tikrinti
-                </button>
-            `;
-            container.appendChild(wrapper);
-        }
-
-        function startCooldown(seconds) {
-            isCooldownActive = true;
-            const banner = document.getElementById("cooldown-banner");
-            const timerEl = document.getElementById("cooldown-timer");
-            const answerElements = document.querySelectorAll(".answer-btn, #user-answer-input");
-
-            banner.classList.remove("hidden");
-            answerElements.forEach(el => el.disabled = true);
-
-            let timeLeft = seconds;
-            timerEl.textContent = `${timeLeft}s`;
-
-            let interval = setInterval(() => {
-                timeLeft--;
-                timerEl.textContent = `${timeLeft}s`;
-                if (timeLeft <= 0) {
-                    clearInterval(interval);
-                    banner.classList.add("hidden");
-                    answerElements.forEach(el => el.disabled = false);
-                    isCooldownActive = false;
-                    const inputEl = document.getElementById("user-answer-input");
-                    if (inputEl) inputEl.focus();
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                timeLeftSeconds--;
+                updateTimerDisplay();
+                if (timeLeftSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    finishTest(true);
                 }
             }, 1000);
         }
 
-        function checkAnswer(userAns, targetElement) {
-            if (isCooldownActive || isNaN(userAns)) return;
-
-            let timeSpent = Math.floor((Date.now() - taskStartTime) / 1000);
-            const feedbackBox = document.getElementById("feedback-box");
-
-            if (userAns === currentTask.answer) {
-                score += 10;
-                document.getElementById("display-score").textContent = score;
-
-                feedbackBox.className = "p-4 rounded-xl text-sm mb-4 bg-green-50 border border-green-300 text-green-900 shadow-sm";
-                feedbackBox.innerHTML = "<strong>Teisingai! (+10 taškų)</strong> Puikus darbas, pereinama prie kito uždavinio.";
-                feedbackBox.classList.remove("hidden");
-
-                document.querySelectorAll(".answer-btn, #user-answer-input").forEach(el => el.disabled = true);
-                syncToSupabase("teisingai", timeSpent);
-
-                setTimeout(() => {
-                    currentTaskIndex++;
-                    loadTask();
-                }, 1200);
-
-            } else {
-                currentAttempts++;
-                score = Math.max(0, score - 5);
-                document.getElementById("display-score").textContent = score;
-
-                feedbackBox.className = "p-4 rounded-xl text-sm mb-4 bg-red-50 border border-red-300 text-red-900 shadow-sm leading-relaxed";
-                feedbackBox.innerHTML = `<strong>Neteisingai! (-5 taškai).</strong><br>${currentTask.rule}`;
-                feedbackBox.classList.remove("hidden");
-
-                if (currentTask.type === "mcq" && targetElement) {
-                    targetElement.classList.add("bg-red-100", "border-red-400", "text-red-700");
-                    targetElement.disabled = true;
-                }
-                syncToSupabase("suklydo", timeSpent);
+        function updateTimerDisplay() {
+            const mins = Math.floor(timeLeftSeconds / 60);
+            const secs = timeLeftSeconds % 60;
+            document.getElementById("timer-display").textContent = String(mins).padStart(2, '0') + ":" + String(secs).padStart(2, '0');
+            if (timeLeftSeconds <= 300) {
+                document.getElementById("timer-box").className = "bg-red-100 border border-red-400 px-3.5 py-1.5 rounded-full text-red-800 font-extrabold text-sm animate-pulse";
             }
         }
 
-        function showFinishScreen() {
-            document.getElementById("app-container").innerHTML = `
-                <div class="text-center py-8">
-                    <div class="text-5xl mb-3">🎉</div>
-                    <h2 class="text-3xl font-extrabold text-autumn-900 mb-2">Pamoka baigta!</h2>
-                    <p class="text-gray-600 mb-6">Sėkmingai įveikėte visas 20 sveikųjų skaičių užduočių.</p>
-                    <div class="inline-block bg-autumn-100 border-2 border-autumn-300 px-6 py-4 rounded-2xl text-2xl font-black text-autumn-900 mb-6 shadow-inner">
-                        Galutinis rezultatas: ${score} taškai
-                    </div>
-                    <div>
-                        <button onclick="location.reload()" class="bg-autumn-600 hover:bg-autumn-700 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg transition">
-                            Spręsti iš naujo
-                        </button>
-                    </div>
-                </div>
-            `;
-            syncToSupabase("baigta");
+        function startCooldown(seconds) {
+            if (cooldownInterval) clearInterval(cooldownInterval);
+            isCooldownActive = true;
+            const banner = document.getElementById("cooldown-banner");
+            const timerEl = document.getElementById("cooldown-timer");
+            const inputs = document.querySelectorAll(".task-control");
+
+            banner.classList.remove("hidden");
+            inputs.forEach(el => el.disabled = true);
+
+            let left = seconds;
+            timerEl.textContent = left + "s";
+
+            cooldownInterval = setInterval(() => {
+                left--;
+                timerEl.textContent = left + "s";
+                if (left <= 0) {
+                    clearInterval(cooldownInterval);
+                    banner.classList.add("hidden");
+                    inputs.forEach(el => el.disabled = false);
+                    isCooldownActive = false;
+                }
+            }, 1000);
         }
 
-        async function syncToSupabase(status, timeSpent = 0) {
+        function renderNavButtons() {
+            const nav = document.getElementById("task-nav-buttons");
+            nav.innerHTML = "";
+            let totalAnswered = 0;
+
+            currentTasks.forEach((t, idx) => {
+                const answeredInTask = t.items.filter(it => userAnswers[it.id] !== undefined && userAnswers[it.id] !== "").length;
+                totalAnswered += answeredInTask;
+                const isAllDone = answeredInTask === t.items.length;
+                const isActive = idx === currentTaskIndex;
+
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.onclick = () => { currentTaskIndex = idx; renderCurrentTask(); };
+                btn.className = "py-2 px-1 rounded-xl text-xs font-bold border-2 transition " + (
+                    isActive ? "border-autumn-600 bg-autumn-600 text-white shadow" :
+                    isAllDone ? "border-green-400 bg-green-50 text-green-800" :
+                    answeredInTask > 0 ? "border-amber-300 bg-amber-50 text-amber-900" :
+                    "border-gray-200 bg-gray-50 text-gray-600 hover:border-autumn-300"
+                );
+                btn.innerHTML = t.id + " užd.<br><span class='text-[10px] font-normal'>" + answeredInTask + "/" + t.items.length + "</span>";
+                nav.appendChild(btn);
+            });
+
+            document.getElementById("answered-counter").textContent = "Atsakyta: " + totalAnswered + " / 30";
+        }
+
+        function renderCurrentTask(applyCooldown = true) {
+            renderNavButtons();
+            const task = currentTasks[currentTaskIndex];
+            document.getElementById("task-level-badge").textContent = task.level;
+            document.getElementById("task-title").textContent = task.title;
+            document.getElementById("task-points-badge").textContent = task.pointsText;
+            document.getElementById("prev-btn").disabled = (currentTaskIndex === 0);
+            document.getElementById("next-btn").classList.toggle("hidden", currentTaskIndex === currentTasks.length - 1);
+
+            const container = document.getElementById("subtasks-container");
+            container.innerHTML = "";
+
+            task.items.forEach(item => {
+                const savedVal = userAnswers[item.id] !== undefined ? userAnswers[item.id] : "";
+                const row = document.createElement("div");
+                row.className = "bg-autumn-50/70 border border-autumn-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3";
+
+                let inputHTML = "";
+                if (item.type === "input") {
+                    inputHTML = '<input type="text" value="' + savedVal + '" oninput="saveAnswer(\'' + item.id + '\', this.value)" placeholder="Atsakymas" class="task-control w-full sm:w-40 px-3.5 py-2 border-2 border-autumn-300 rounded-xl text-lg font-bold text-gray-900 bg-white focus:outline-none focus:border-autumn-600 text-center disabled:bg-gray-100 disabled:cursor-not-allowed">';
+                } else if (item.type === "compare") {
+                    const ltClass = savedVal === '<' ? 'bg-autumn-600 text-white border-autumn-700 shadow' : 'bg-white text-gray-800 border-autumn-300 hover:bg-autumn-100';
+                    const gtClass = savedVal === '>' ? 'bg-autumn-600 text-white border-autumn-700 shadow' : 'bg-white text-gray-800 border-autumn-300 hover:bg-autumn-100';
+                    inputHTML = '<div class="flex gap-2">' +
+                        '<button type="button" onclick="if(!isCooldownActive){saveAnswer(\'' + item.id + '\', \'<\'); renderCurrentTask(false);}" class="task-control w-16 py-2 rounded-xl text-xl font-black border-2 transition disabled:opacity-50 ' + ltClass + '">&lt;</button>' +
+                        '<button type="button" onclick="if(!isCooldownActive){saveAnswer(\'' + item.id + '\', \'>\'); renderCurrentTask(false);}" class="task-control w-16 py-2 rounded-xl text-xl font-black border-2 transition disabled:opacity-50 ' + gtClass + '">&gt;</button>' +
+                        '</div>';
+                } else if (item.type === "select") {
+                    const opts = item.options.map(o => '<option value="' + o + '" ' + (savedVal === o ? 'selected' : '') + '>' + o + '</option>').join("");
+                    inputHTML = '<select onchange="saveAnswer(\'' + item.id + '\', this.value)" class="task-control w-full sm:w-56 px-3 py-2 border-2 border-autumn-300 rounded-xl text-base font-bold text-gray-900 bg-white focus:outline-none focus:border-autumn-600 disabled:bg-gray-100"><option value="">-- Pasirinkite --</option>' + opts + '</select>';
+                }
+
+                row.innerHTML = '<div class="text-base md:text-lg font-semibold text-gray-800"><span class="text-autumn-800 font-extrabold mr-1.5">' + item.label + '</span> ' + item.expr + '</div><div class="shrink-0">' + inputHTML + '</div>';
+                container.appendChild(row);
+            });
+
+            if (applyCooldown) {
+                startCooldown(5);
+            }
+        }
+
+        function saveAnswer(itemId, val) {
+            userAnswers[itemId] = val;
+            renderNavButtons();
+            syncToSupabase("sprendžia");
+        }
+
+        function changeTask(delta) {
+            const nextIdx = currentTaskIndex + delta;
+            if (nextIdx >= 0 && nextIdx < currentTasks.length) {
+                currentTaskIndex = nextIdx;
+                renderCurrentTask(true);
+            }
+        }
+
+        function normalizeNumber(str) {
+            if (str === undefined || str === null) return NaN;
+            const cleaned = String(str).trim().replace(/\s+/g, '').replace(/−/g, '-').replace(/–/g, '-').replace(',', '.');
+            return cleaned === "" ? NaN : parseFloat(cleaned);
+        }
+
+        function evaluateTest(tasksList, answersObj, progType) {
+            let totalScore = 0;
+            let levelScores = {
+                "Slenkstinis lygis": { earned: 0, max: 4 },
+                "Patenkinamas lygis": { earned: 0, max: 6 },
+                "Pagrindinis lygis": { earned: 0, max: 6 },
+                "Aukštesnysis lygis": { earned: 0, max: 4 }
+            };
+            let details = [];
+
+            tasksList.forEach(task => {
+                task.items.forEach(item => {
+                    const rawUser = answersObj[item.id] !== undefined ? String(answersObj[item.id]).trim() : "";
+                    const isAnswered = rawUser !== "";
+                    let isCorrect = false;
+                    if (item.type === "input") {
+                        const numUser = normalizeNumber(rawUser);
+                        if (!isNaN(numUser) && Math.abs(numUser - item.ans) < 0.0001) isCorrect = true;
+                    } else if (rawUser === item.ans) {
+                        isCorrect = true;
+                    }
+
+                    const earnedPts = isCorrect ? item.pts : 0;
+                    totalScore += earnedPts;
+                    levelScores[task.level].earned += earnedPts;
+
+                    details.push({
+                        taskNum: task.id, level: task.level, label: item.label, expr: item.expr,
+                        userAns: isAnswered ? rawUser : "Neatsakyta", isAnswered: isAnswered,
+                        correctAns: String(item.ans).replace('.', ','),
+                        isCorrect: isCorrect, manualOverride: false,
+                        earnedPts: earnedPts, maxPts: item.pts, rule: item.rule
+                    });
+                });
+            });
+
+            totalScore = Math.round(totalScore * 10) / 10;
+            const percent = Math.round((totalScore / 20) * 100);
+            const gradeInfo = calculateGrade(percent, progType);
+            return { totalScore, percent, grade: gradeInfo.grade, achievedLevel: gradeInfo.level, levelScores, details };
+        }
+
+        // PERSKAIČIAVIMAS MOKYTOJUI UŽSKAITANT ARBA ATŠAUKIANT ATSAKYMĄ
+        function recalculateResultObject(resultObj, progType) {
+            let totalScore = 0;
+            let levelScores = {
+                "Slenkstinis lygis": { earned: 0, max: 4 },
+                "Patenkinamas lygis": { earned: 0, max: 6 },
+                "Pagrindinis lygis": { earned: 0, max: 6 },
+                "Aukštesnysis lygis": { earned: 0, max: 4 }
+            };
+
+            resultObj.details.forEach(d => {
+                const credited = d.isCorrect || d.manualOverride;
+                d.earnedPts = credited ? d.maxPts : 0;
+                totalScore += d.earnedPts;
+                if (levelScores[d.level]) {
+                    levelScores[d.level].earned += d.earnedPts;
+                }
+            });
+
+            Object.keys(levelScores).forEach(k => {
+                levelScores[k].earned = Math.round(levelScores[k].earned * 10) / 10;
+            });
+
+            totalScore = Math.round(totalScore * 10) / 10;
+            const percent = Math.round((totalScore / 20) * 100);
+            const gradeInfo = calculateGrade(percent, progType);
+
+            resultObj.totalScore = totalScore;
+            resultObj.percent = percent;
+            resultObj.grade = gradeInfo.grade;
+            resultObj.achievedLevel = gradeInfo.level;
+            resultObj.levelScores = levelScores;
+            return resultObj;
+        }
+
+        function calculateGrade(percent, progType) {
+            if (progType === "DEP") {
+                if (percent >= 85) return { grade: 10, level: "Aukštesnysis (DEP)" };
+                if (percent >= 75) return { grade: 9, level: "Aukštesnysis (DEP)" };
+                if (percent >= 65) return { grade: 8, level: "Pagrindinis (DEP)" };
+                if (percent >= 55) return { grade: 7, level: "Pagrindinis (DEP)" };
+                if (percent >= 45) return { grade: 6, level: "Pagrindinis (DEP)" };
+                if (percent >= 35) return { grade: 5, level: "Patenkinamas (DEP)" };
+                if (percent >= 25) return { grade: 4, level: "Slenkstinis (DEP)" };
+                if (percent >= 15) return { grade: 3, level: "Nepatenkinamas" };
+                return { grade: 2, level: "Nepatenkinamas" };
+            }
+            if (percent >= 95) return { grade: 10, level: "Aukštesnysis" };
+            if (percent >= 85) return { grade: 9, level: "Aukštesnysis" };
+            if (percent >= 75) return { grade: 8, level: "Pagrindinis" };
+            if (percent >= 65) return { grade: 7, level: "Pagrindinis" };
+            if (percent >= 55) return { grade: 6, level: "Pagrindinis" };
+            if (percent >= 45) return { grade: 5, level: "Patenkinamas" };
+            if (percent >= 35) return { grade: 4, level: "Slenkstinis" };
+            if (percent >= 25) return { grade: 3, level: "Nepatenkinamas" };
+            return { grade: 2, level: "Nepatenkinamas" };
+        }
+
+        function confirmFinish() {
+            const answered = Object.values(userAnswers).filter(v => v !== undefined && v !== "").length;
+            if (answered < 30 && !confirm("Atsakėte į " + answered + " iš 30 užduotėlių. Ar tikrai norite baigti?")) return;
+            finishTest(false);
+        }
+
+        function finishTest(isAuto) {
+            if (isFinished) return;
+            isFinished = true;
+            clearInterval(timerInterval);
+            if (cooldownInterval) clearInterval(cooldownInterval);
+            document.getElementById("cheat-sheet-panel").classList.add("hidden");
+
+            const spentSec = totalAllowedSeconds - timeLeftSeconds;
+            const result = evaluateTest(currentTasks, userAnswers, programType);
+            syncToSupabase("baigta", result);
+
+            const reportHTML = buildReportHTML({
+                studentName, variantNum, programType, tabLeaveCount, result,
+                testTitle: TEST_TITLE,
+                spentText: formatDuration(spentSec),
+                dateStr: new Date().toLocaleDateString('lt-LT'),
+                isTeacherView: false
+            });
+
+            document.getElementById("app-container").innerHTML =
+                '<div class="flex justify-between items-center mb-4 pb-3 border-b no-print">' +
+                '<span class="text-sm font-bold text-green-700">' + (isAuto ? "⏰ Laikas baigėsi! Darbas išsaugotas." : "✓ Darbas sėkmingai pateiktas!") + '</span>' +
+                '<button type="button" onclick="printReport(\'student-final-report\')" class="bg-autumn-600 hover:bg-autumn-700 text-white font-bold px-4 py-2 rounded-xl text-sm shadow">🖨️ Spausdinti ataskaitą / PDF</button>' +
+                '</div><div id="student-final-report">' + reportHTML + '</div>';
+        }
+
+        function buildReportHTML(info) {
+            const { studentName, variantNum, programType, tabLeaveCount, result, testTitle, spentText, dateStr, isTeacherView } = info;
+            const progLabel = programType === "DEP" ? "Pritaikyta programa (DEP)" : "Bendroji programa (BP)";
+            const titleToDisplay = testTitle || TEST_TITLE;
+
+            const rowsHTML = result.details.map((d, dIdx) => {
+                const isCredited = d.isCorrect || d.manualOverride;
+                const rowBg = d.manualOverride ? 'bg-blue-50/70' : (d.isCorrect ? 'bg-white' : 'bg-red-50/60');
+                const ansColor = d.manualOverride ? 'text-blue-700' : (d.isCorrect ? 'text-green-700' : 'text-red-700');
+
+                let commentText = d.isCorrect ? '✓ Teisingai' : (d.manualOverride ? '✓ Užskaityta mokytojo' : d.rule);
+                let actionBtn = "";
+                if (isTeacherView && !d.isCorrect) {
+                    if (d.manualOverride) {
+                        actionBtn = ' <button type="button" onclick="toggleManualCredit(' + dIdx + ')" class="no-print ml-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-2 py-0.5 rounded text-[10px] font-bold">Atšaukti</button>';
+                    } else {
+                        actionBtn = ' <button type="button" onclick="toggleManualCredit(' + dIdx + ')" class="no-print ml-1 bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded text-[10px] font-bold shadow-sm">+ Užskaityti</button>';
+                    }
+                }
+
+                return '<tr class="border-b ' + rowBg + '">' +
+                    '<td class="p-2 font-bold text-xs">' + d.taskNum + ' ' + d.label + '</td>' +
+                    '<td class="p-2 text-xs">' + d.expr + '</td>' +
+                    '<td class="p-2 text-xs font-bold ' + ansColor + '">' + d.userAns + '</td>' +
+                    '<td class="p-2 text-xs font-bold text-gray-800">' + d.correctAns + '</td>' +
+                    '<td class="p-2 text-xs font-bold text-center">' + String(d.earnedPts).replace('.', ',') + ' / ' + String(d.maxPts).replace('.', ',') + '</td>' +
+                    '<td class="p-2 text-[11px] text-gray-700">' + commentText + actionBtn + '</td></tr>';
+            }).join("");
+
+            return '<div class="text-gray-900">' +
+                '<div class="flex flex-wrap justify-between items-start border-b-2 border-gray-800 pb-3 mb-4 gap-2">' +
+                '<div><h2 class="text-lg md:text-xl font-extrabold uppercase">' + titleToDisplay + '</h2>' +
+                '<p class="text-xs text-gray-600 mt-0.5">6 klasė &bull; Pasiekimų vertinimo ir klaidų analizės ataskaita</p></div>' +
+                '<div class="text-right text-xs"><p><strong>Data:</strong> ' + dateStr + '</p>' +
+                '<p><strong>Variantas:</strong> ' + variantNum + ' &bull; <strong>Programa:</strong> ' + progLabel + '</p>' +
+                (spentText ? '<p><strong>Sugaištas laikas:</strong> ' + spentText + '</p>' : '') + '</div></div>' +
+                '<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 bg-gray-50 p-3 rounded-xl border">' +
+                '<div><div class="text-[11px] text-gray-500 uppercase">Mokinys</div><div class="font-bold text-sm">' + studentName + '</div></div>' +
+                '<div><div class="text-[11px] text-gray-500 uppercase">Surinkta taškų</div><div class="font-extrabold text-base text-autumn-800">' + String(result.totalScore).replace('.', ',') + ' / 20 tšk. (' + result.percent + '%)</div></div>' +
+                '<div><div class="text-[11px] text-gray-500 uppercase">Pasiekimų lygis</div><div class="font-bold text-sm">' + result.achievedLevel + '</div></div>' +
+                '<div><div class="text-[11px] text-gray-500 uppercase">Preliminarus pažymys</div><div class="font-black text-xl text-green-700">' + result.grade + '</div></div></div>' +
+                '<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 text-xs">' +
+                '<div class="border rounded-lg p-2"><strong>Slenkstinis (1–2):</strong> ' + String(result.levelScores["Slenkstinis lygis"].earned).replace('.', ',') + ' / 4 tšk.</div>' +
+                '<div class="border rounded-lg p-2"><strong>Patenkinamas (3–4):</strong> ' + String(result.levelScores["Patenkinamas lygis"].earned).replace('.', ',') + ' / 6 tšk.</div>' +
+                '<div class="border rounded-lg p-2"><strong>Pagrindinis (5–6):</strong> ' + String(result.levelScores["Pagrindinis lygis"].earned).replace('.', ',') + ' / 6 tšk.</div>' +
+                '<div class="border rounded-lg p-2"><strong>Aukštesnysis (7–8):</strong> ' + String(result.levelScores["Aukštesnysis lygis"].earned).replace('.', ',') + ' / 4 tšk.</div></div>' +
+                (tabLeaveCount > 0 ? '<p class="text-xs text-red-700 font-semibold mb-2">Pastaba: naršyklės langas darbo metu buvo paliktas ' + tabLeaveCount + ' k.</p>' : '') +
+                '<table class="w-full text-left border-collapse border text-xs"><thead><tr class="bg-gray-200 text-gray-900 border-b">' +
+                '<th class="p-2">Užd.</th><th class="p-2">Sąlyga</th><th class="p-2">Mokinio ats.</th><th class="p-2">Teisingas ats.</th><th class="p-2 text-center">Taškai</th><th class="p-2">Komentaras / Vertinimas</th></tr></thead><tbody>' + rowsHTML + '</tbody></table></div>';
+        }
+
+        function printReport(elementId) {
+            const content = document.getElementById(elementId).innerHTML;
+            let printDiv = document.getElementById("print-area");
+            if (!printDiv) {
+                printDiv = document.createElement("div");
+                printDiv.id = "print-area";
+                document.body.appendChild(printDiv);
+            }
+            printDiv.innerHTML = content;
+            window.print();
+        }
+
+        async function syncToSupabase(status, finalResult = null) {
             if (!supabaseClient) return;
             try {
+                const answeredCount = Object.values(userAnswers).filter(v => v !== undefined && v !== "").length;
+                const spentSec = totalAllowedSeconds - timeLeftSeconds;
+                const currentEval = finalResult || evaluateTest(currentTasks, userAnswers, programType);
+                const payloadData = {
+                    testShortName: TEST_SHORT_NAME,
+                    testTitle: TEST_TITLE,
+                    variant: variantNum, program: programType, answered: answeredCount,
+                    tabLeaves: tabLeaveCount, grade: currentEval.grade, percent: currentEval.percent,
+                    spentSeconds: spentSec,
+                    result: currentEval, dateStr: new Date().toLocaleDateString('lt-LT')
+                };
                 await supabaseClient.from('student_sessions').upsert({
-                    id: studentId,
-                    student_name: studentName,
-                    current_task_id: currentTaskIndex + 1,
-                    current_task_text: currentTask ? currentTask.text : "Baigta",
-                    attempts: currentAttempts,
-                    time_spent_seconds: timeSpent,
-                    score: score,
-                    status: status,
-                    updated_at: new Date()
+                    id: studentId, student_name: studentName, current_task_id: answeredCount,
+                    current_task_text: JSON.stringify(payloadData), attempts: tabLeaveCount,
+                    time_spent_seconds: spentSec,
+                    score: currentEval.totalScore, status: status, updated_at: new Date()
                 });
-            } catch (err) {
-                console.error("Supabase error:", err);
-            }
+            } catch (err) {}
         }
 
         function openTeacherModal() {
-            document.getElementById("teacher-modal").classList.remove("hidden");
+            const m = document.getElementById("teacher-modal");
+            m.classList.remove("hidden");
+            m.style.display = "flex";
         }
         function closeTeacherModal() {
-            document.getElementById("teacher-modal").classList.add("hidden");
+            const m = document.getElementById("teacher-modal");
+            m.classList.add("hidden");
+            m.style.display = "none";
         }
 
-        async function verifyTeacherPin() {
-            const pin = document.getElementById("teacher-pin").value;
-            if (pin === "1234") {
+        function verifyTeacherPin() {
+            if (document.getElementById("teacher-pin").value === "1234") {
                 document.getElementById("teacher-auth").classList.add("hidden");
-                document.getElementById("teacher-content").classList.remove("hidden");
+                const tc = document.getElementById("teacher-content");
+                tc.classList.remove("hidden");
+                tc.style.display = "flex";
                 fetchTeacherData();
-
-                if (supabaseClient) {
-                    supabaseClient
-                      .channel('public:student_sessions')
-                      .on('postgres_changes', { event: '*', schema: 'public', table: 'student_sessions' }, payload => {
-                          fetchTeacherData();
-                      })
-                      .subscribe();
-                }
             } else {
                 alert("Neteisingas PIN kodas!");
             }
@@ -468,49 +881,238 @@
 
         async function fetchTeacherData() {
             const tbody = document.getElementById("students-table-body");
-            tbody.innerHTML = "";
-
+            tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-500">Kraunami duomenys...</td></tr>';
             if (!supabaseClient) {
-                tbody.innerHTML = `
-                    <tr class="border-b">
-                        <td class="p-3 font-semibold">${studentName || "Nenurodyta"}</td>
-                        <td class="p-3 font-bold">${currentTaskIndex + 1} / 20</td>
-                        <td class="p-3 text-xs text-gray-600 max-w-xs truncate">${currentTask ? currentTask.text : "-"}</td>
-                        <td class="p-3">${currentAttempts}</td>
-                        <td class="p-3">-</td>
-                        <td class="p-3 font-extrabold text-autumn-700">${score}</td>
-                        <td class="p-3"><span class="px-2 py-1 bg-amber-100 text-amber-900 rounded text-xs font-semibold">Vietinis režimas</span></td>
-                    </tr>
-                `;
+                tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-500">Nėra ryšio su Supabase.</td></tr>';
                 return;
             }
-
             try {
                 let { data, error } = await supabaseClient.from('student_sessions').select('*').order('updated_at', { ascending: false });
                 if (error) throw error;
-
-                if (data && data.length > 0) {
-                    data.forEach(st => {
-                        let statusColor = st.status === 'teisingai' ? 'bg-green-100 text-green-800' : 
-                                           st.status === 'suklydo' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800';
-                        tbody.innerHTML += `
-                            <tr class="border-b">
-                                <td class="p-3 font-semibold">${st.student_name}</td>
-                                <td class="p-3 font-bold">${st.current_task_id} / 20</td>
-                                <td class="p-3 text-xs text-gray-600 max-w-xs truncate">${st.current_task_text}</td>
-                                <td class="p-3">${st.attempts}</td>
-                                <td class="p-3">${st.time_spent_seconds}s</td>
-                                <td class="p-3 font-extrabold text-autumn-700">${st.score}</td>
-                                <td class="p-3"><span class="px-2.5 py-1 rounded text-xs font-bold ${statusColor}">${st.status}</span></td>
-                            </tr>
-                        `;
-                    });
-                } else {
-                    tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-500">Nėra prisijungusių mokinių.</td></tr>`;
-                }
+                cachedSessions = data || [];
+                populateTestFilter();
+                renderTeacherTable();
             } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-500">Klaida gaunant duomenis iš bazės.</td></tr>`;
+                tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-red-500">Klaida gaunant duomenis.</td></tr>';
             }
+        }
+
+        function populateTestFilter() {
+            const sel = document.getElementById("test-filter-select");
+            const prevVal = sel.value;
+            const testsSet = new Set();
+            cachedSessions.forEach(st => {
+                try {
+                    const p = JSON.parse(st.current_task_text);
+                    if (p && p.testShortName) testsSet.add(p.testShortName);
+                    else testsSet.add(TEST_SHORT_NAME);
+                } catch (e) { testsSet.add("Kitas darbas"); }
+            });
+
+            sel.innerHTML = '<option value="ALL">Visi darbai (' + cachedSessions.length + ')</option>';
+            testsSet.forEach(tName => {
+                sel.innerHTML += '<option value="' + tName + '">' + tName + '</option>';
+            });
+            if ([...sel.options].some(o => o.value === prevVal)) sel.value = prevVal;
+        }
+
+        function getFilteredSessionsWithIdx() {
+            const filterVal = document.getElementById("test-filter-select").value;
+            const list = [];
+            cachedSessions.forEach((st, idx) => {
+                let parsed = null;
+                try { parsed = JSON.parse(st.current_task_text); } catch(e) {}
+                const tName = (parsed && parsed.testShortName) ? parsed.testShortName : TEST_SHORT_NAME;
+                if (filterVal === "ALL" || filterVal === tName) {
+                    list.push({ st, idx, parsed, tName });
+                }
+            });
+            return list;
+        }
+
+        function renderTeacherTable() {
+            const tbody = document.getElementById("students-table-body");
+            tbody.innerHTML = "";
+            const filtered = getFilteredSessionsWithIdx();
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-500">Nėra mokinių įrašų pagal pasirinktą filtrą.</td></tr>';
+                return;
+            }
+
+            filtered.forEach(({ st, idx, parsed, tName }) => {
+                const varInfo = parsed ? parsed.variant + " var. (" + parsed.program + ")" : "-";
+                const leaves = parsed ? parsed.tabLeaves : st.attempts;
+                const spentStr = formatDuration(parsed && parsed.spentSeconds !== undefined ? parsed.spentSeconds : st.time_spent_seconds);
+                const grade = parsed ? parsed.grade : "-";
+                const statusColor = st.status === 'baigta' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800';
+
+                let gridHTML = "-";
+                if (parsed && parsed.result && parsed.result.details) {
+                    gridHTML = '<div class="flex flex-wrap gap-1 max-w-[230px]">' + parsed.result.details.map((d, qIdx) => {
+                        let bg = "bg-gray-200 text-gray-600";
+                        if (d.manualOverride) {
+                            bg = "bg-blue-500 text-white";
+                        } else if (d.isAnswered) {
+                            bg = d.isCorrect ? "bg-green-500 text-white" : "bg-red-500 text-white";
+                        }
+                        const tip = (qIdx + 1) + " kl. (" + d.taskNum + d.label + "): " + d.userAns + " [Teisingas: " + d.correctAns + "]";
+                        return '<span title="' + tip + '" class="w-4 h-4 rounded-[3px] text-[9px] font-bold flex items-center justify-center cursor-help ' + bg + '">' + (qIdx + 1) + '</span>';
+                    }).join("") + '</div>';
+                }
+
+                tbody.innerHTML += '<tr class="border-b hover:bg-gray-50">' +
+                    '<td class="p-3 font-bold">' + st.student_name + (leaves > 0 ? '<div class="text-[11px] text-red-600 font-semibold">⚠️ Išėjo iš lango: ' + leaves + ' k.</div>' : '') + '</td>' +
+                    '<td class="p-3"><div class="text-xs font-bold text-autumn-900">' + tName + '</div><div class="text-[11px] text-gray-500 font-semibold">' + varInfo + '</div></td>' +
+                    '<td class="p-3">' + gridHTML + '</td>' +
+                    '<td class="p-3 text-xs font-semibold text-gray-700 whitespace-nowrap">' + spentStr + '</td>' +
+                    '<td class="p-3 font-extrabold text-autumn-800">' + String(st.score).replace('.', ',') + '</td>' +
+                    '<td class="p-3 font-black text-base text-green-700">' + grade + '</td>' +
+                    '<td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ' + statusColor + '">' + st.status + '</span></td>' +
+                    '<td class="p-3">' + (parsed && parsed.result ? '<button type="button" onclick="openStudentReport(' + idx + ')" class="bg-autumn-600 hover:bg-autumn-700 text-white px-2.5 py-1 rounded text-xs font-bold">Ataskaita</button>' : '-') + '</td></tr>';
+            });
+        }
+
+        function openStudentReport(idx) {
+            const st = cachedSessions[idx];
+            if (!st) return;
+            activeReportSessionIdx = idx;
+            try {
+                const parsed = JSON.parse(st.current_task_text);
+                const spentStr = formatDuration(parsed.spentSeconds !== undefined ? parsed.spentSeconds : st.time_spent_seconds);
+                document.getElementById("modal-report-body").innerHTML = buildReportHTML({
+                    studentName: st.student_name, variantNum: parsed.variant, programType: parsed.program,
+                    tabLeaveCount: parsed.tabLeaves, result: parsed.result,
+                    testTitle: parsed.testTitle || TEST_TITLE,
+                    spentText: spentStr,
+                    dateStr: parsed.dateStr || new Date().toLocaleDateString('lt-LT'),
+                    isTeacherView: true
+                });
+                const rm = document.getElementById("report-modal");
+                rm.classList.remove("hidden");
+                rm.style.display = "flex";
+            } catch(e) { alert("Nepavyko atidaryti ataskaitos."); }
+        }
+
+        // UŽSKAITYTI ARBA ATŠAUKTI ATSAKYMĄ ATASKAITOJE IR IŠSAUGOTI DUOMENŲ BAZĖJE
+        async function toggleManualCredit(detailIdx) {
+            if (activeReportSessionIdx === null) return;
+            const st = cachedSessions[activeReportSessionIdx];
+            if (!st) return;
+
+            try {
+                const parsed = JSON.parse(st.current_task_text);
+                const item = parsed.result.details[detailIdx];
+                if (!item) return;
+
+                item.manualOverride = !item.manualOverride;
+                parsed.result = recalculateResultObject(parsed.result, parsed.program);
+                parsed.grade = parsed.result.grade;
+                parsed.percent = parsed.result.percent;
+
+                st.score = parsed.result.totalScore;
+                st.current_task_text = JSON.stringify(parsed);
+
+                // Atnaujiname ataskaitos langą ir mokytojo lentelę
+                openStudentReport(activeReportSessionIdx);
+                renderTeacherTable();
+
+                // Išsaugome į Supabase
+                if (supabaseClient) {
+                    await supabaseClient.from('student_sessions').update({
+                        score: st.score,
+                        current_task_text: st.current_task_text
+                    }).eq('id', st.id);
+                }
+            } catch (e) {
+                alert("Nepavyko atnaujinti įvertinimo.");
+            }
+        }
+
+        // SPAUSDINTI KLASĖS SUVESTINĘ
+        function printClassSummary() {
+            const filtered = getFilteredSessionsWithIdx();
+            if (!filtered.length) {
+                alert("Nėra duomenų klasės suvestinei.");
+                return;
+            }
+            const filterVal = document.getElementById("test-filter-select").value;
+            const summaryTitle = filterVal === "ALL" ? TEST_TITLE : filterVal;
+            const dateStr = new Date().toLocaleDateString('lt-LT');
+
+            let gradeSum = 0;
+            let gradeCount = 0;
+            let scoreSum = 0;
+
+            const rows = filtered.map(({ st, parsed }, i) => {
+                const varStr = parsed ? parsed.variant + " var. (" + parsed.program + ")" : "-";
+                const ansStr = parsed ? parsed.answered + " / 30" : "-";
+                const spentStr = formatDuration(parsed && parsed.spentSeconds !== undefined ? parsed.spentSeconds : st.time_spent_seconds);
+                const pctStr = parsed ? parsed.percent + "%" : "-";
+                const levelStr = (parsed && parsed.result) ? parsed.result.achievedLevel : "-";
+                const gradeNum = parsed ? parsed.grade : null;
+
+                scoreSum += Number(st.score) || 0;
+                if (gradeNum !== null && !isNaN(gradeNum)) {
+                    gradeSum += Number(gradeNum);
+                    gradeCount++;
+                }
+
+                return '<tr class="border-b">' +
+                    '<td class="p-2 text-center">' + (i + 1) + '</td>' +
+                    '<td class="p-2 font-bold">' + st.student_name + '</td>' +
+                    '<td class="p-2 text-center">' + varStr + '</td>' +
+                    '<td class="p-2 text-center">' + ansStr + '</td>' +
+                    '<td class="p-2 text-center">' + spentStr + '</td>' +
+                    '<td class="p-2 text-center font-bold">' + String(st.score).replace('.', ',') + ' / 20</td>' +
+                    '<td class="p-2 text-center">' + pctStr + '</td>' +
+                    '<td class="p-2">' + levelStr + '</td>' +
+                    '<td class="p-2 text-center font-extrabold text-base">' + (gradeNum || "-") + '</td></tr>';
+            }).join("");
+
+            const avgScore = (scoreSum / filtered.length).toFixed(1).replace('.', ',');
+            const avgGrade = gradeCount > 0 ? (gradeSum / gradeCount).toFixed(2).replace('.', ',') : "-";
+
+            const html = '<div class="text-gray-900 font-sans">' +
+                '<div class="border-b-2 border-gray-800 pb-3 mb-4 flex justify-between items-end">' +
+                '<div><h2 class="text-lg font-extrabold uppercase">' + summaryTitle + '</h2>' +
+                '<p class="text-xs text-gray-600">Klasės rezultatų suvestinė &bull; 6 klasė</p></div>' +
+                '<div class="text-right text-xs"><p><strong>Data:</strong> ' + dateStr + '</p><p><strong>Mokiniai:</strong> ' + filtered.length + '</p></div></div>' +
+                '<table class="w-full text-left border-collapse border text-xs mb-4">' +
+                '<thead><tr class="bg-gray-200 border-b">' +
+                '<th class="p-2 text-center">Nr.</th><th class="p-2">Vardas, Pavardė</th><th class="p-2 text-center">Var. / Prog.</th>' +
+                '<th class="p-2 text-center">Atsakyta</th><th class="p-2 text-center">Sugaištas laikas</th><th class="p-2 text-center">Taškai</th>' +
+                '<th class="p-2 text-center">Proc.</th><th class="p-2">Pasiekimų lygis</th><th class="p-2 text-center">Pažymys</th></tr></thead>' +
+                '<tbody>' + rows + '</tbody></table>' +
+                '<div class="bg-gray-100 p-3 rounded-lg border text-xs flex gap-6">' +
+                '<span><strong>Klasės taškų vidurkis:</strong> ' + avgScore + ' / 20 tšk.</span>' +
+                '<span><strong>Klasės pažymių vidurkis:</strong> ' + avgGrade + '</span></div></div>';
+
+            let printDiv = document.getElementById("print-area");
+            if (!printDiv) {
+                printDiv = document.createElement("div");
+                printDiv.id = "print-area";
+                document.body.appendChild(printDiv);
+            }
+            printDiv.innerHTML = html;
+            window.print();
+        }
+
+        function exportCSV() {
+            const filtered = getFilteredSessionsWithIdx();
+            if (!filtered.length) return;
+            let csv = "\uFEFFKontrolinis;Mokinys;Variantas;Programa;Atsakyta;Sugaistas laikas;Lango palikimai;Taskai (is 20);Procentai;Pasiekimu lygis;Pazymys;Busena\n";
+            filtered.forEach(({ st, parsed, tName }) => {
+                const p = parsed || {};
+                const spentStr = formatDuration(p.spentSeconds !== undefined ? p.spentSeconds : st.time_spent_seconds);
+                const levelStr = (p.result && p.result.achievedLevel) ? p.result.achievedLevel : "";
+                csv += '"' + tName + '";"' + st.student_name + '";' + (p.variant || "") + ';' + (p.program || "") + ';' + (p.answered || 0) + ';"' + spentStr + '";' + (p.tabLeaves || 0) + ';' + String(st.score).replace('.', ',') + ';' + (p.percent || 0) + '%;"' + levelStr + '";' + (p.grade || "") + ';' + st.status + '\n';
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "K2_klases_suvestine_" + new Date().toISOString().slice(0,10) + ".csv";
+            link.click();
         }
     </script>
 </body>
